@@ -9,7 +9,6 @@
 ![Shell](https://img.shields.io/badge/shell-Bash-orange.svg)
 ![Conky](https://img.shields.io/badge/widget-Conky-purple.svg)
 ![Release](https://img.shields.io/github/v/release/Yahya-Zekry/internet-usage-monitor?color=brightgreen)
-![Tests](https://img.shields.io/github/actions/workflow/status/Yahya-Zekry/internet-usage-monitor/test-installation.yml?label=tests)
 ![Downloads](https://img.shields.io/github/downloads/Yahya-Zekry/internet-usage-monitor/total?color=blue)
 ![Stars](https://img.shields.io/github/stars/Yahya-Zekry/internet-usage-monitor?style=social)
 ![Yerba Mate](https://img.shields.io/badge/yerba%20mate-🧉%20balanced-green.svg)
@@ -304,13 +303,6 @@ internet-usage-monitor/
 │   └── conkyrc_internet              # Conky widget config
 ├── 📁 scripts/                       # Utility scripts
 │   └── screenshot_test.sh            # Interactive testing
-├── 📁 docs/                          # Documentation
-│   ├── IMPROVEMENTS.md               # What was improved
-│   ├── PROJECT_STRUCTURE.md          # Project organization
-│   ├── UPDATE_FEATURE.md             # Update system guide
-│   ├── PATH_RESOLUTION_FIX.md        # Technical fixes
-│   └── README.md                     # Documentation index
-├── 📁 screenshots/                   # Screenshots
 ├── 🚀 install.sh                     # Smart installer
 ├── 🗑️ uninstall.sh                   # Complete removal
 ├── 📄 README.md                      # This file
@@ -497,12 +489,8 @@ src/conky_usage_helper.sh usage
 
 **✅ Tested Distributions:**
 
-- Garuda Linux (KDE Plasma) - Primary development
-- Arch Linux / Manjaro
-- Ubuntu 20.04+ / Linux Mint
-- Fedora 35+ / CentOS Stream
-- Debian 11+ / Kali Linux
-- openSUSE Tumbleweed / Leap
+- Garuda Linux (KDE Plasma) - Primary development and testing platform.
+- (Automated CI testing for other distributions has been temporarily removed.)
 
 **✅ Desktop Environments:**
 
@@ -562,18 +550,15 @@ src/conky_usage_helper.sh usage
 
 **Need Help?**
 
-- 📖 **Documentation**: Check `docs/` folder for detailed guides
-- 🐛 **Bug Reports**: Use GitHub issues with templates
-- 💡 **Feature Requests**: Submit enhancement proposals
-- 🤝 **Contributions**: Follow contribution guidelines
-- 📧 **Contact**: Through GitHub discussions
+- 📖 **Documentation**: Refer to this README.md for comprehensive information.
+- 🐛 **Bug Reports**: Use GitHub issues. (Note: Issue templates have been removed for now).
+- 💡 **Feature Requests**: Submit enhancement proposals via GitHub issues.
+- 🤝 **Contributions**: Follow contribution guidelines (if available).
+- 📧 **Contact**: Through GitHub discussions.
 
 **Quick Links:**
 
-- 📋 [Project Structure Guide](docs/PROJECT_STRUCTURE.md)
-- 🔄 [Update System Guide](docs/UPDATE_FEATURE.md)
-- 🔧 [Technical Fixes](docs/PATH_RESOLUTION_FIX.md)
-- 📈 [Improvements Made](docs/IMPROVEMENTS.md)
+- (Detailed guides previously in `docs/` have been removed for now.)
 
 ## 📝 License
 
