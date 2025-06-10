@@ -131,12 +131,7 @@ jobs:
           globs: |
             README.md
             docs/**/*.md
-          config: |
-            {
-              "MD013": false,
-              "MD033": false,
-              "MD041": false
-            }
+          config: .markdownlint-cli2.jsonc
 
   test-conky-config:
     name: 🎨 Test Conky Configuration

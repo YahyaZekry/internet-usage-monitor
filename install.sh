@@ -267,8 +267,30 @@ install_files() {
     fi
     
     # Make scripts executable
-    chmod +x src/internet_monitor.sh src/conky_usage_helper.sh src/internet_monitor_daemon.sh scripts/screenshot_test.sh
-    print_status "$GREEN" "$CHECK" "Made scripts executable"
+    print_status "$BLUE" "$INFO" "Setting script permissions..."
+    local exec_files=(
+        "src/internet_monitor.sh"
+        "src/conky_usage_helper.sh"
+        "src/internet_monitor_daemon.sh"
+        "scripts/screenshot_test.sh"
+        "install.sh"  # Make itself executable too if not already
+        "uninstall.sh"
+    )
+    local chmod_errors=0
+    for exec_file in "${exec_files[@]}"; do
+        if [ -f "$exec_file" ]; then
+            chmod +x "$exec_file"
+            print_status "$GREEN" "$CHECK" "Made $exec_file executable"
+        else
+            print_status "$YELLOW" "$WARNING" "File not found for chmod: $exec_file (This might be okay if not all scripts are present in all contexts)"
+            ((chmod_errors++))
+        fi
+    done
+    if [ $chmod_errors -eq 0 ]; then
+        print_status "$GREEN" "$CHECK" "All script permissions set successfully"
+    else
+        print_status "$YELLOW" "$WARNING" "Some files not found during chmod, check paths if this is unexpected."
+    fi
     
     # Stop running processes before updating
     if detect_existing_installation; then
@@ -357,10 +379,14 @@ install_files() {
             print_status "$BLUE" "$INFO" "No systemd timer found to restart"
         fi
         
-        # 2. Start Conky widget with new configuration
-        print_status "$BLUE" "$INFO" "Starting Conky widget with new configuration..."
-        conky -c ~/.conkyrc_internet &
-        print_status "$GREEN" "$CHECK" "Conky widget started"
+        # 2. Start Conky widget with new configuration (if not in CI)
+        if [ "$CI" != "true" ] && [ -n "$DISPLAY" ]; then
+            print_status "$BLUE" "$INFO" "Attempting to start Conky widget with new configuration..."
+            (conky -c ~/.conkyrc_internet &) && print_status "$GREEN" "$CHECK" "Conky widget start initiated." || print_status "$YELLOW" "$WARNING" "Conky widget failed to start or no display."
+        else
+            print_status "$BLUE" "$INFO" "Skipping Conky auto-start in CI/headless environment."
+            echo "          You can start it manually: conky -c ~/.conkyrc_internet &"
+        fi
         
         # 3. Test the updated scripts
         print_status "$BLUE" "$INFO" "Testing updated scripts..."

@@ -79,7 +79,10 @@ jobs:
               dnf install -y ${{ matrix.packages }}
               ;;
             pacman)
-              pacman -Sy --noconfirm ${{ matrix.packages }}
+              pacman -Sy --noconfirm ${{ matrix.packages }} dbus
+              # Attempt to start dbus, might not be necessary if systemd is running it
+              mkdir -p /var/run/dbus
+              dbus-daemon --system --fork || echo "DBus already running or failed to start (Arch)"
               ;;
           esac
 
