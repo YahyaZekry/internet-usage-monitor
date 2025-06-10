@@ -1,3 +1,4 @@
+# Workflow to test installation across multiple Linux distributions
 name: Multi-Distribution Installation Testing
 
 on:
