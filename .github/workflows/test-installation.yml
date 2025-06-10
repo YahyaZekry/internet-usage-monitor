@@ -30,25 +30,25 @@ jobs:
         include:
           - distribution: ubuntu:22.04
             package_manager: apt
-            packages: "sudo curl git bc procps libnotify-bin"
+            packages: "sudo curl git bc procps libnotify-bin dbus conky"
           - distribution: ubuntu:20.04
             package_manager: apt
-            packages: "sudo curl git bc procps libnotify-bin"
+            packages: "sudo curl git bc procps libnotify-bin dbus conky"
           - distribution: debian:11
             package_manager: apt
-            packages: "sudo curl git bc procps libnotify-bin"
+            packages: "sudo curl git bc procps libnotify-bin dbus conky"
           - distribution: debian:12
             package_manager: apt
-            packages: "sudo curl git bc procps libnotify-bin"
+            packages: "sudo curl git bc procps libnotify-bin dbus conky"
           - distribution: fedora:39
             package_manager: dnf
-            packages: "sudo curl git bc procps-ng libnotify"
+            packages: "sudo curl git bc procps-ng libnotify conky"
           - distribution: fedora:40
             package_manager: dnf
-            packages: "sudo curl git bc procps-ng libnotify"
+            packages: "sudo curl git bc procps-ng libnotify conky"
           - distribution: archlinux:latest
             package_manager: pacman
-            packages: "sudo curl git bc procps-ng libnotify"
+            packages: "sudo curl git bc procps-ng libnotify conky"
 
     container:
       image: ${{ matrix.distribution }}
@@ -61,7 +61,18 @@ jobs:
             apt)
               export DEBIAN_FRONTEND=noninteractive
               apt-get update
-              apt-get install -y ${{ matrix.packages }}
+              # Install software-properties-common for add-apt-repository and other base packages
+              apt-get install -y software-properties-common ${{ matrix.packages }}
+              # Attempt to install conky-all, add PPA if not found
+              if ! apt-get install -y conky-all; then
+                echo "Conky package not found, adding PPA..."
+                add-apt-repository -y ppa:vincent-c/conky
+                apt-get update
+                apt-get install -y conky-all || (echo "❌ Failed to install conky from PPA" && exit 1)
+              fi
+              # Setup DBus
+              mkdir -p /var/run/dbus
+              dbus-daemon --system --fork || echo "DBus already running or failed to start"
               ;;
             dnf)
               dnf install -y ${{ matrix.packages }}
@@ -82,7 +93,7 @@ jobs:
 
       - name: Test prerequisite detection
         run: |
-          su - testuser -c "cd $GITHUB_WORKSPACE && bash -x ./install.sh" <<EOF || echo "Expected failure on missing packages"
+          su - testuser -c "cd $GITHUB_WORKSPACE && bash -x ./install.sh" <<EOF || true # Allow failure here
           n
           3
           EOF
@@ -104,11 +115,11 @@ jobs:
       - name: Verify installation files
         run: |
           su - testuser -c "
-            [ -f /home/testuser/internet_monitor.sh ] || exit 1
-            [ -f /home/testuser/conky_usage_helper.sh ] || exit 1
-            [ -f /home/testuser/internet_monitor_daemon.sh ] || exit 1
-            [ -f /home/testuser/.conkyrc_internet ] || exit 1
-            [ -f /home/testuser/config.sh ] || exit 1
+            [ -f /home/testuser/internet_monitor.sh ] || { echo 'File missing: internet_monitor.sh'; exit 1; }
+            [ -f /home/testuser/conky_usage_helper.sh ] || { echo 'File missing: conky_usage_helper.sh'; exit 1; }
+            [ -f /home/testuser/internet_monitor_daemon.sh ] || { echo 'File missing: internet_monitor_daemon.sh'; exit 1; }
+            [ -f /home/testuser/.conkyrc_internet ] || { echo 'File missing: .conkyrc_internet'; exit 1; }
+            [ -f /home/testuser/config.sh ] || { echo 'File missing: config.sh'; exit 1; }
             echo 'All files installed correctly'
           "
 
@@ -159,7 +170,16 @@ jobs:
         run: |
           export DEBIAN_FRONTEND=noninteractive
           apt-get update
-          apt-get install -y systemd sudo curl git bc procps libnotify-bin
+          apt-get install -y systemd sudo curl git bc procps libnotify-bin dbus conky-all software-properties-common
+          # Attempt to install conky-all via PPA if not found (redundant here if matrix includes it, but safe)
+          if ! dpkg -s conky-all >/dev/null 2>&1; then
+            echo "Conky package not found, adding PPA..."
+            add-apt-repository -y ppa:vincent-c/conky
+            apt-get update
+            apt-get install -y conky-all || (echo "❌ Failed to install conky from PPA" && exit 1)
+          fi
+          mkdir -p /var/run/dbus
+          dbus-daemon --system --fork || echo "DBus already running or failed to start"
           systemctl --version
 
       - name: Checkout repository
