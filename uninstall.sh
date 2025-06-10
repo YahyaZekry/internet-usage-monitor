@@ -3,7 +3,7 @@
 # Internet Usage Monitor - Uninstallation Script
 # Removes all installed files and configurations
 
-# set -e  # Exit on any error - disabled for better error handling
+set -e # Re-enable exit on error, individual rm failures are handled in remove_files
 
 # Colors for output
 RED='\033[0;31m'
@@ -133,13 +133,14 @@ remove_files() {
         return
     fi
     
-    # Ask for confirmation if many files found
-    if [ ${#files_to_remove[@]} -gt 5 ]; then
+    # Ask for confirmation if files are found
+    if [ ${#files_to_remove[@]} -gt 0 ]; then
         echo
-        read -p "Found ${#files_to_remove[@]} files. Remove all? (y/N): " -n 1 -r
+        read -p "Found ${#files_to_remove[@]} files. Remove all? (y/N): " REPLY
         echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            print_status "$BLUE" "$INFO" "File removal cancelled."
+        local response_char="${REPLY:0:1}" # Get the first character
+        if [[ ! "$response_char" =~ ^[Yy]$ ]]; then
+            print_status "$BLUE" "$INFO" "File removal cancelled by user."
             return
         fi
     fi
@@ -178,10 +179,11 @@ remove_files() {
 # Function to remove user data
 remove_user_data() {
     echo
-    read -p "Do you want to remove usage data and logs? (y/N): " -n 1 -r
+    read -p "Do you want to remove usage data and logs? (y/N): " REPLY
     echo
+    local response_char="${REPLY:0:1}" # Get the first character
     
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
+    if [[ "$response_char" =~ ^[Yy]$ ]]; then
         if [ -f "$HOME/.internet_usage_data" ]; then
             rm -f "$HOME/.internet_usage_data"
             print_status "$GREEN" "$CHECK" "Removed usage data file"
@@ -263,9 +265,10 @@ stop_processes() {
     # Stop Conky instances (ask user first)
     if pgrep conky > /dev/null; then
         echo
-        read -p "Conky is running. Stop all Conky instances? (y/N): " -n 1 -r
+        read -p "Conky is running. Stop all Conky instances? (y/N): " REPLY
         echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
+        local response_char="${REPLY:0:1}" # Get the first character
+        if [[ "$response_char" =~ ^[Yy]$ ]]; then
             pkill conky
             print_status "$GREEN" "$CHECK" "Stopped Conky processes"
         else
@@ -347,9 +350,10 @@ main() {
     fi
     
     # Confirm uninstallation
-    read -p "Are you sure you want to continue? (y/N): " -n 1 -r
+    read -p "Are you sure you want to continue? (y/N): " REPLY
     echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    local response_char="${REPLY:0:1}" # Get the first character
+    if [[ ! "$response_char" =~ ^[Yy]$ ]]; then
         print_status "$BLUE" "$INFO" "Uninstallation cancelled."
         exit 0
     fi
