@@ -239,7 +239,7 @@ The installer offers multiple monitoring options, each as reliable as your daily
 
 ### **Option 1: Cron Job (Recommended)** 📅
 
-**Like your scheduled mate breaks throughout the day**
+Like your scheduled mate breaks throughout the day
 
 **Why recommended:**
 
@@ -256,7 +256,7 @@ The installer offers multiple monitoring options, each as reliable as your daily
 
 ### **Option 2: Systemd Timer** ⏰
 
-**Precise timing like a mate cebador's perfect rhythm**
+Precise timing like a mate cebador's perfect rhythm
 
 **Trade-offs:**
 
@@ -277,7 +277,7 @@ systemctl --user restart internet-monitor.timer
 
 ### **Option 3: Daemon Mode** 🔄
 
-**Continuous monitoring like slowly sipping mate all day**
+Continuous monitoring like slowly sipping mate all day
 
 ```bash
 # Start daemon
@@ -289,7 +289,7 @@ pkill -f internet_monitor_daemon.sh
 
 ### **Option 4: Desktop Autostart** 🌅
 
-**Automatically starts monitoring and widget on login - like preparing mate first thing in the morning**
+Automatically starts monitoring and widget on login - like preparing mate first thing in the morning
 
 ## 📁 Professional Project Structure
 
@@ -618,6 +618,6 @@ If you find this project useful:
 
 Made for the Linux community
 
-**"Professional monitoring tools should be as reliable as your morning yerba mate ritual - consistent, dependable, and perfectly balanced."**
+"Professional monitoring tools should be as reliable as your morning yerba mate ritual - consistent, dependable, and perfectly balanced."
 
 Keep your data usage as balanced as your yerba mate blend - never too much, always just right. 🧉⚖️

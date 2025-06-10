@@ -149,9 +149,16 @@ remove_files() {
     local removed_count=0
     for file in "${files_to_remove[@]}"; do
         if [ -f "$file" ]; then
-            # Check if file is in use
-            if lsof "$file" >/dev/null 2>&1; then
-                print_status "$YELLOW" "$WARNING" "File in use, forcing removal: $file"
+            # Check if file is in use, only if lsof command exists
+            local file_in_use=false
+            if command_exists lsof; then
+                if lsof "$file" >/dev/null 2>&1; then
+                    file_in_use=true
+                fi
+            fi
+            
+            if [ "$file_in_use" = true ]; then
+                print_status "$YELLOW" "$WARNING" "File in use (detected by lsof), forcing removal: $file"
                 rm -f "$file" 2>/dev/null || {
                     print_status "$RED" "$CROSS" "Failed to remove (file in use): $file"
                     continue

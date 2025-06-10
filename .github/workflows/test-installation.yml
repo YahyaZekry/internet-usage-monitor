@@ -62,21 +62,33 @@ jobs:
             apt)
               export DEBIAN_FRONTEND=noninteractive
               apt-get update
-              # Ensure universe repository is enabled and install software-properties-common for add-apt-repository
-              apt-get install -y software-properties-common
-              sudo add-apt-repository -y universe
-              apt-get update
-              # Install base packages including conky-all from matrix
-              apt-get install -y ${{ matrix.packages }}
-              # Attempt to install conky-all via PPA if direct install failed (e.g. if matrix.packages didn't have conky-all or it failed)
-              # This check is now more of a strong fallback.
-              if ! dpkg -s conky-all >/dev/null 2>&1; then
-                echo "Conky package not found, adding PPA..."
-                add-apt-repository -y ppa:vincent-c/conky
-                apt-get update
-                apt-get install -y conky-all || (echo "❌ Failed to install conky from PPA" && exit 1)
+              # Install software-properties-common (for add-apt-repository if needed) AND sudo first
+              apt-get install -y software-properties-common sudo
+
+              if grep -q '^ID=ubuntu' /etc/os-release; then
+                echo "Ubuntu detected. Ensuring 'universe' repository is enabled."
+                sudo add-apt-repository -y universe
+                apt-get update # Update after adding new repo
+              else
+                echo "Debian detected. 'universe' repository is not applicable."
               fi
-              # Setup DBus
+              
+              # Install the packages specified in the matrix (includes conky-all, sudo, etc.)
+              apt-get install -y ${{ matrix.packages }}
+
+              # PPA fallback specifically for Ubuntu if conky-all still not installed
+              if grep -q '^ID=ubuntu' /etc/os-release && ! dpkg -s conky-all >/dev/null 2>&1; then
+                echo "Conky-all not installed on Ubuntu from standard/universe repos, trying PPA..."
+                # add-apt-repository is already available via software-properties-common
+                sudo add-apt-repository -y ppa:vincent-c/conky 
+                apt-get update
+                apt-get install -y conky-all || (echo "❌ Failed to install conky-all from PPA on Ubuntu" && exit 1)
+              elif ! dpkg -s conky-all >/dev/null 2>&1; then
+                # If not Ubuntu and conky-all failed to install from matrix.packages
+                echo "❌ Failed to install conky-all on $(grep '^ID=' /etc/os-release | cut -d'=' -f2) from standard repositories." && exit 1
+              fi
+              
+              # Common DBus setup for apt systems
               mkdir -p /var/run/dbus
               dbus-daemon --system --fork || echo "DBus already running or failed to start"
               ;;
