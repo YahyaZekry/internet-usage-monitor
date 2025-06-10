@@ -78,7 +78,7 @@ jobs:
         run: |
           useradd -m -s /bin/bash testuser
           echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-          chown -R testuser:testuser /github/workspace
+          chown -R testuser:testuser $GITHUB_WORKSPACE
 
       - name: Test prerequisite detection
         run: |
@@ -169,7 +169,7 @@ jobs:
         run: |
           useradd -m -s /bin/bash testuser
           echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-          chown -R testuser:testuser /github/workspace
+          chown -R testuser:testuser $GITHUB_WORKSPACE
           # Enable lingering for user systemd services
           mkdir -p /var/lib/systemd/linger
           touch /var/lib/systemd/linger/testuser
@@ -215,7 +215,7 @@ jobs:
         run: |
           useradd -m -s /bin/bash testuser
           echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-          chown -R testuser:testuser /github/workspace
+          chown -R testuser:testuser $GITHUB_WORKSPACE
 
       - name: Test Conky configuration
         run: |
