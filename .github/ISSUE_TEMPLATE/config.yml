@@ -1,0 +1,15 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://github.com/Yahya-Zekry/internet-usage-monitor/blob/main/README.md
+    about: Read the comprehensive setup and usage guide
+  - name: 🔧 Troubleshooting Guide
+    url: https://github.com/Yahya-Zekry/internet-usage-monitor/blob/main/README.md#-troubleshooting
+    about: Check common issues and solutions before creating an issue
+  - name: 💬 Discussions
+    url: https://github.com/Yahya-Zekry/internet-usage-monitor/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: ☕ General Questions
+    url: https://github.com/Yahya-Zekry/internet-usage-monitor/discussions/categories/q-a
+    about: For general questions that don't require an issue
+

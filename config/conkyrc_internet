@@ -1,24 +1,24 @@
 -- Beautiful Internet Usage Monitor Widget
--- Designed for Garuda Linux with modern styling
+-- Designed for modern Linux desktop environments with dynamic configuration
 
 conky.config = {
     -- Window settings
     own_window = true,
     own_window_class = 'Conky',
-    own_window_type = 'normal',
+    own_window_type = 'desktop',
     own_window_transparent = false,
     own_window_argb_visual = true,
     own_window_argb_value = 200,
-    own_window_hints = 'undecorated,sticky,skip_taskbar,skip_pager',
+    own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
     own_window_colour = '000000',
 
     -- Position and size
     alignment = 'top_right',
     gap_x = 20,
     gap_y = 60,
-    minimum_height = 160,
-    minimum_width = 220,
-    maximum_width = 240,
+    minimum_height = 180,
+    minimum_width = 240,
+    maximum_width = 260,
 
     -- Background and borders
     background = true,
@@ -73,10 +73,15 @@ conky.text = [[
 ${alignc}${color0}${font Ubuntu:bold:size=12}${font Noto Color Emoji:size=12}📊${font Ubuntu:bold:size=12} INTERNET${font}
 ${color0}${hr 1}
 ${color8}${font Noto Color Emoji:size=10}📈${font} Used: ${alignr}${color1}${exec ~/conky_usage_helper.sh usage}
-${color8}${font Noto Color Emoji:size=10}🎯${font} Limit: ${alignr}${color0}2.00 GB
+${color7}${hr 1}
+${color8}${font Noto Color Emoji:size=10}🎯${font} Limit: ${alignr}${color0}${exec ~/conky_usage_helper.sh limit}
+${color7}${hr 1}
 ${color8}${font Noto Color Emoji:size=10}💾${font} Left: ${alignr}${color5}${exec ~/conky_usage_helper.sh remaining}
+${color7}${hr 1}
 ${color8}${exec ~/conky_usage_helper.sh percentage} ${alignr}${if_match ${exec ~/conky_usage_helper.sh bar_percent} >= 100}${color3}${else}${if_match ${exec ~/conky_usage_helper.sh bar_percent} >= 80}${color2}${else}${color1}${endif}${endif}${exec ~/conky_usage_helper.sh status}
-${if_match ${exec ~/conky_usage_helper.sh bar_percent} >= 100}${color3}${else}${if_match ${exec ~/conky_usage_helper.sh bar_percent} >= 80}${color2}${else}${color1}${endif}${endif}${execbar 4,200 ~/conky_usage_helper.sh bar_percent}
+${if_match ${exec ~/conky_usage_helper.sh bar_percent} >= 100}${color3}${else}${if_match ${exec ~/conky_usage_helper.sh bar_percent} >= 80}${color2}${else}${color1}${endif}${endif}${execbar 4,220 ~/conky_usage_helper.sh bar_percent}
 ${color7}${hr 1}
 ${color8}${font Noto Color Emoji:size=8}🔧${font}${font Ubuntu:size=8} Monitor: ${color1}${exec ~/conky_usage_helper.sh monitor_status}${font}
+${color8}${font Noto Color Emoji:size=8}🌐${font}${font Ubuntu:size=8} Interface: ${color4}${exec ~/conky_usage_helper.sh interface}${font}
+${color7}${font Ubuntu:size=7}Warn: ${exec ~/conky_usage_helper.sh warning_threshold} | Critical: ${exec ~/conky_usage_helper.sh critical_threshold}${font}
 ]]

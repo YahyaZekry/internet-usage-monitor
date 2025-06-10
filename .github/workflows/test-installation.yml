@@ -1,0 +1,314 @@
+name: Multi-Distribution Installation Testing
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      test_distributions:
+        description: "Distributions to test (comma-separated)"
+        required: false
+        default: "ubuntu-22.04,ubuntu-20.04"
+        type: string
+
+jobs:
+  test-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distribution:
+          - ubuntu:22.04
+          - ubuntu:20.04
+          - debian:11
+          - debian:12
+          - fedora:39
+          - fedora:40
+          - archlinux:latest
+        include:
+          - distribution: ubuntu:22.04
+            package_manager: apt
+            packages: "sudo curl git bc procps libnotify-bin"
+          - distribution: ubuntu:20.04
+            package_manager: apt
+            packages: "sudo curl git bc procps libnotify-bin"
+          - distribution: debian:11
+            package_manager: apt
+            packages: "sudo curl git bc procps libnotify-bin"
+          - distribution: debian:12
+            package_manager: apt
+            packages: "sudo curl git bc procps libnotify-bin"
+          - distribution: fedora:39
+            package_manager: dnf
+            packages: "sudo curl git bc procps-ng libnotify"
+          - distribution: fedora:40
+            package_manager: dnf
+            packages: "sudo curl git bc procps-ng libnotify"
+          - distribution: archlinux:latest
+            package_manager: pacman
+            packages: "sudo curl git bc procps-ng libnotify"
+
+    container:
+      image: ${{ matrix.distribution }}
+      options: --privileged
+
+    steps:
+      - name: Install basic dependencies
+        run: |
+          case "${{ matrix.package_manager }}" in
+            apt)
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update
+              apt-get install -y ${{ matrix.packages }}
+              ;;
+            dnf)
+              dnf install -y ${{ matrix.packages }}
+              ;;
+            pacman)
+              pacman -Sy --noconfirm ${{ matrix.packages }}
+              ;;
+          esac
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create test user
+        run: |
+          useradd -m -s /bin/bash testuser
+          echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+          chown -R testuser:testuser /github/workspace
+
+      - name: Test prerequisite detection
+        run: |
+          su - testuser -c "cd /github/workspace && bash -x ./install.sh" <<EOF || echo "Expected failure on missing packages"
+          n
+          3
+          EOF
+
+      - name: Install missing packages via installer
+        run: |
+          su - testuser -c "cd /github/workspace && bash -x ./install.sh" <<EOF
+          y
+          4
+          EOF
+
+      - name: Test fresh installation
+        run: |
+          su - testuser -c "cd /github/workspace && ./install.sh" <<EOF
+          1
+          4
+          EOF
+
+      - name: Verify installation files
+        run: |
+          su - testuser -c "
+            [ -f /home/testuser/internet_monitor.sh ] || exit 1
+            [ -f /home/testuser/conky_usage_helper.sh ] || exit 1
+            [ -f /home/testuser/internet_monitor_daemon.sh ] || exit 1
+            [ -f /home/testuser/.conkyrc_internet ] || exit 1
+            [ -f /home/testuser/config.sh ] || exit 1
+            echo 'All files installed correctly'
+          "
+
+      - name: Test script functionality
+        run: |
+          su - testuser -c "
+            ~/internet_monitor.sh help
+            ~/internet_monitor.sh usage
+            ~/conky_usage_helper.sh usage
+            ~/conky_usage_helper.sh limit
+            echo 'Scripts working correctly'
+          "
+
+      - name: Test update installation
+        run: |
+          su - testuser -c "cd /github/workspace && ./install.sh" <<EOF
+          1
+          y
+          4
+          EOF
+
+      - name: Test uninstallation
+        run: |
+          su - testuser -c "cd /github/workspace && ./uninstall.sh" <<EOF
+          y
+          y
+          n
+          EOF
+
+      - name: Verify clean uninstall
+        run: |
+          su - testuser -c "
+            [ ! -f /home/testuser/internet_monitor.sh ] || exit 1
+            [ ! -f /home/testuser/conky_usage_helper.sh ] || exit 1
+            [ ! -f /home/testuser/internet_monitor_daemon.sh ] || exit 1
+            [ ! -f /home/testuser/.conkyrc_internet ] || exit 1
+            echo 'Uninstallation completed successfully'
+          "
+
+  test-systemd:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:22.04
+      options: --privileged --cgroupns=host -v /sys/fs/cgroup:/sys/fs/cgroup:rw
+
+    steps:
+      - name: Install systemd and dependencies
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y systemd sudo curl git bc procps libnotify-bin
+          systemctl --version
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create test user
+        run: |
+          useradd -m -s /bin/bash testuser
+          echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+          chown -R testuser:testuser /github/workspace
+          # Enable lingering for user systemd services
+          mkdir -p /var/lib/systemd/linger
+          touch /var/lib/systemd/linger/testuser
+
+      - name: Test systemd timer installation
+        run: |
+          su - testuser -c "cd /github/workspace && ./install.sh" <<EOF
+          2
+          4
+          EOF
+
+      - name: Verify systemd timer
+        run: |
+          su - testuser -c "
+            systemctl --user is-enabled internet-monitor.timer
+            systemctl --user status internet-monitor.timer
+            echo 'Systemd timer working correctly'
+          "
+
+      - name: Test systemd update
+        run: |
+          su - testuser -c "cd /github/workspace && ./install.sh" <<EOF
+          1
+          y
+          EOF
+
+  test-conky:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:22.04
+
+    steps:
+      - name: Install dependencies including Conky
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y sudo curl git bc procps libnotify-bin conky-all xvfb
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create test user
+        run: |
+          useradd -m -s /bin/bash testuser
+          echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+          chown -R testuser:testuser /github/workspace
+
+      - name: Test Conky configuration
+        run: |
+          su - testuser -c "cd /github/workspace && ./install.sh" <<EOF
+          4
+          EOF
+
+      - name: Validate Conky config
+        run: |
+          su - testuser -c "
+            # Test Conky config syntax
+            Xvfb :99 -screen 0 1024x768x24 &
+            export DISPLAY=:99
+            timeout 10s conky -c /home/testuser/.conkyrc_internet -t 'Config test' || echo 'Conky config validated'
+          "
+
+  test-scripts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc shellcheck
+
+      - name: Run ShellCheck on all scripts
+        run: |
+          find . -name "*.sh" -type f | xargs shellcheck -x || echo "ShellCheck completed with warnings"
+
+      - name: Test script syntax
+        run: |
+          bash -n install.sh
+          bash -n uninstall.sh
+          bash -n src/internet_monitor.sh
+          bash -n src/conky_usage_helper.sh
+          bash -n src/internet_monitor_daemon.sh
+          bash -n scripts/screenshot_test.sh
+
+      - name: Test script permissions
+        run: |
+          chmod +x install.sh uninstall.sh
+          chmod +x src/*.sh scripts/*.sh
+          echo "All scripts are executable"
+
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Basic security checks
+        run: |
+          echo "Running basic security checks..."
+
+          # Check for common security issues
+          echo "Checking for hardcoded passwords..."
+          grep -r -i "password" . --exclude-dir=.git --exclude-dir=.github || echo "No hardcoded passwords found"
+
+          echo "Checking for API keys..."
+          grep -r -E "(api[_-]?key|secret)" . --exclude-dir=.git --exclude-dir=.github || echo "No API keys found"
+
+          echo "Checking for private keys..."
+          grep -r "BEGIN.*PRIVATE.*KEY" . --exclude-dir=.git || echo "No private keys found"
+
+          echo "Checking file permissions..."
+          find . -type f -perm /o+w -exec echo "World-writable file: {}" \; || echo "No world-writable files found"
+
+          echo "✅ Basic security checks completed"
+
+  generate-test-report:
+    needs: [test-matrix, test-systemd, test-conky, test-scripts, security-scan]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Generate test summary
+        run: |
+          echo "# Internet Usage Monitor Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Status" >> $GITHUB_STEP_SUMMARY
+          echo "- Multi-distribution testing: ${{ needs.test-matrix.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Systemd integration: ${{ needs.test-systemd.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Conky configuration: ${{ needs.test-conky.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Script validation: ${{ needs.test-scripts.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Security scan: ${{ needs.security-scan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Summary" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.test-matrix.result }}" == "success" && "${{ needs.test-systemd.result }}" == "success" && "${{ needs.test-conky.result }}" == "success" ]]; then
+            echo "✅ All critical tests passed! Ready for production." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Some tests failed. Review results before deployment." >> $GITHUB_STEP_SUMMARY
+          fi

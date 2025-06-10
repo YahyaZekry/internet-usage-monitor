@@ -1,13 +1,15 @@
-# Data files
+# Internet Usage Monitor - GitIgnore File
+
+# Runtime data files (created during operation)
+*.log
 *.data
 .internet_usage_data
-
-# Logs
-*.log
+.internet_usage.log
 
 # Backup files
-*.bak
 *.backup
+*.bak
+*.tmp
 *~
 
 # OS generated files
@@ -19,14 +21,86 @@
 ehthumbs.db
 Thumbs.db
 
-# Editor files
+# IDE/Editor files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.project
+.classpath
+.settings/
 
-# Temporary files
-*.tmp
-*.temp
+# Test files
+test_*
+*_test.sh
+debug_*
 
+# Personal configuration files
+.env
+.env.local
+config.local
+
+# Distribution specific files
+*.deb
+*.rpm
+*.tar.gz
+*.zip
+
+# Compiled files
+*.o
+*.so
+*.dylib
+
+# Logs and databases
+*.sqlite
+*.db
+
+# Cache directories
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Documentation build outputs
+docs/_build/
+site/
+
+# Temporary installation files
+install_temp/
+temp_install/
+
+# User-specific runtime configurations
+.conkyrc_internet_backup
+conkyrc_internet.bak
+
+# System-specific files that shouldn't be versioned
+.internet_monitor_pid
+.lock
+*.pid
+
+# Screenshots directory (keep structure but not actual images during development)
+screenshots/*.png
+screenshots/*.jpg
+screenshots/*.gif
+!screenshots/.gitkeep
+
+# Any personal notes or TODO files
+TODO.md
+NOTES.md
+personal_*
+
+# Archive files
+*.tar
+*.tar.bz2
+*.tar.xz
+*.tgz
+
+# Patch files
+*.patch
+*.diff
