@@ -272,7 +272,6 @@ install_files() {
         "src/internet_monitor.sh"
         "src/conky_usage_helper.sh"
         "src/internet_monitor_daemon.sh"
-        "scripts/screenshot_test.sh"
         "install.sh"  # Make itself executable too if not already
         "uninstall.sh"
     )

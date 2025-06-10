@@ -117,7 +117,7 @@ CRITICAL_THRESHOLD=100        # When to show critical alert
 
 ## 📋 **File Structure (New)**
 
-```
+```text
 internet-usage-monitor/
 ├── config.sh                    # 🆕 Shared configuration
 ├── internet_monitor.sh          # ✨ Updated main script (no loop)

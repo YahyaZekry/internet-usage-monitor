@@ -31,16 +31,16 @@ jobs:
         include:
           - distribution: ubuntu:22.04
             package_manager: apt
-            packages: "sudo curl git bc procps libnotify-bin dbus conky"
+            packages: "sudo curl git bc procps libnotify-bin dbus conky-all"
           - distribution: ubuntu:20.04
             package_manager: apt
-            packages: "sudo curl git bc procps libnotify-bin dbus conky"
+            packages: "sudo curl git bc procps libnotify-bin dbus conky-all"
           - distribution: debian:11
             package_manager: apt
-            packages: "sudo curl git bc procps libnotify-bin dbus conky"
+            packages: "sudo curl git bc procps libnotify-bin dbus conky-all"
           - distribution: debian:12
             package_manager: apt
-            packages: "sudo curl git bc procps libnotify-bin dbus conky"
+            packages: "sudo curl git bc procps libnotify-bin dbus conky-all"
           - distribution: fedora:39
             package_manager: dnf
             packages: "sudo curl git bc procps-ng libnotify conky"
@@ -62,10 +62,15 @@ jobs:
             apt)
               export DEBIAN_FRONTEND=noninteractive
               apt-get update
-              # Install software-properties-common for add-apt-repository and other base packages
-              apt-get install -y software-properties-common ${{ matrix.packages }}
-              # Attempt to install conky-all, add PPA if not found
-              if ! apt-get install -y conky-all; then
+              # Ensure universe repository is enabled and install software-properties-common for add-apt-repository
+              apt-get install -y software-properties-common
+              sudo add-apt-repository -y universe
+              apt-get update
+              # Install base packages including conky-all from matrix
+              apt-get install -y ${{ matrix.packages }}
+              # Attempt to install conky-all via PPA if direct install failed (e.g. if matrix.packages didn't have conky-all or it failed)
+              # This check is now more of a strong fallback.
+              if ! dpkg -s conky-all >/dev/null 2>&1; then
                 echo "Conky package not found, adding PPA..."
                 add-apt-repository -y ppa:vincent-c/conky
                 apt-get update
@@ -279,12 +284,11 @@ jobs:
           bash -n src/internet_monitor.sh
           bash -n src/conky_usage_helper.sh
           bash -n src/internet_monitor_daemon.sh
-          bash -n scripts/screenshot_test.sh
 
       - name: Test script permissions
         run: |
           chmod +x install.sh uninstall.sh
-          chmod +x src/*.sh scripts/*.sh
+          chmod +x src/*.sh
           echo "All scripts are executable"
 
   security-scan:

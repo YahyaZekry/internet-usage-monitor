@@ -2,7 +2,7 @@
 
 ## 📁 **New Organized Structure**
 
-```
+```text
 internet-usage-monitor/
 ├── 📁 src/                           # Source code files
 │   ├── 🔧 internet_monitor.sh        # Main monitoring script (runs once)
@@ -144,7 +144,7 @@ internet-usage-monitor/
 
 When installed, files are copied to:
 
-```
+```text
 $HOME/
 ├── internet_monitor.sh          # Main script
 ├── internet_monitor_daemon.sh   # Daemon script
@@ -155,7 +155,7 @@ $HOME/
 
 ### **Runtime Data Files**
 
-```
+```text
 $HOME/
 ├── .internet_usage_data         # Usage tracking data
 └── .internet_usage.log         # Activity log
@@ -190,7 +190,7 @@ src/internet_monitor.sh usage           # Check status
 scripts/screenshot_test.sh              # Test scenarios
 ```
 
-### **After Installation**
+### **Post-Installation Usage**
 
 ```bash
 # From home directory:

@@ -88,7 +88,7 @@ When you run the installer on an existing installation:
 
 You'll get intelligent options:
 
-```
+```text
 Existing installation detected!
 
 Installation options:
@@ -239,7 +239,7 @@ The installer offers multiple monitoring options, each as reliable as your daily
 
 ### **Option 1: Cron Job (Recommended)** 📅
 
-_Like your scheduled mate breaks throughout the day_
+**Like your scheduled mate breaks throughout the day**
 
 **Why recommended:**
 
@@ -256,7 +256,7 @@ _Like your scheduled mate breaks throughout the day_
 
 ### **Option 2: Systemd Timer** ⏰
 
-_Precise timing like a mate cebador's perfect rhythm_
+**Precise timing like a mate cebador's perfect rhythm**
 
 **Trade-offs:**
 
@@ -277,7 +277,7 @@ systemctl --user restart internet-monitor.timer
 
 ### **Option 3: Daemon Mode** 🔄
 
-_Continuous monitoring like slowly sipping mate all day_
+**Continuous monitoring like slowly sipping mate all day**
 
 ```bash
 # Start daemon
@@ -289,11 +289,11 @@ pkill -f internet_monitor_daemon.sh
 
 ### **Option 4: Desktop Autostart** 🌅
 
-_Automatically starts monitoring and widget on login - like preparing mate first thing in the morning_
+**Automatically starts monitoring and widget on login - like preparing mate first thing in the morning**
 
 ## 📁 Professional Project Structure
 
-```
+```text
 internet-usage-monitor/
 ├── 📁 src/                           # Source code
 │   ├── internet_monitor.sh           # Main monitoring script
@@ -319,7 +319,7 @@ internet-usage-monitor/
 
 **Runtime Files:**
 
-```
+```text
 ~/.internet_usage_data               # Usage tracking data
 ~/.internet_usage.log                # Activity logs
 ~/.conkyrc_internet                  # Widget config (installed)
@@ -614,8 +614,10 @@ If you find this project useful:
 
 ---
 
-**Made with ❤️ and 🧉 for the Linux community**
+### ❤️ **Made with Love and Mate** 🧉
 
-_"Professional monitoring tools should be as reliable as your morning yerba mate ritual - consistent, dependable, and perfectly balanced."_
+Made for the Linux community
 
-**Keep your data usage as balanced as your yerba mate blend - never too much, always just right.** 🧉⚖️
+**"Professional monitoring tools should be as reliable as your morning yerba mate ritual - consistent, dependable, and perfectly balanced."**
+
+Keep your data usage as balanced as your yerba mate blend - never too much, always just right. 🧉⚖️

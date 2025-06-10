@@ -18,7 +18,7 @@ When you run `./install.sh`, the script automatically:
 
 When an existing installation is detected, you get three choices:
 
-```
+```text
 Installation options:
 1) Update existing installation (recommended)
 2) Fresh install (will backup current installation)
@@ -38,7 +38,7 @@ Before any update or fresh install, the script automatically:
 
 **Example backup location:**
 
-```
+```text
 /home/user/.internet_monitor_install_backup_20250610_062400/
 ```
 

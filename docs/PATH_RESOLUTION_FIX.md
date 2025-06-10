@@ -4,7 +4,7 @@
 
 After installing the scripts via `install.sh`, the scripts were failing with:
 
-```
+```text
 /home/frieso/../config/config.sh: No such file or directory
 ```
 
@@ -86,6 +86,7 @@ cp config/config.sh .                 # Simulate installation
    ```
 
 2. **Or manually fix** by ensuring `config.sh` is in your home directory:
+
    ```bash
    cp config/config.sh ~/
    ```

@@ -77,7 +77,7 @@ find_installed_files() {
     
     local found_files=()
     
-    print_status "$BLUE" "$INFO" "Searching for installed files..."
+    print_status "$BLUE" "$INFO" "Searching for installed files..." >&2 # Redirect to stderr
     
     for path in "${search_paths[@]}"; do
         if [ -d "$path" ]; then
@@ -107,13 +107,13 @@ find_installed_files() {
     local unique_files=($(printf '%s\n' "${found_files[@]}" | sort -u))
     
     if [ ${#unique_files[@]} -gt 0 ]; then
-        print_status "$YELLOW" "$WARNING" "Found ${#unique_files[@]} files to remove:"
+        print_status "$YELLOW" "$WARNING" "Found ${#unique_files[@]} files to remove:" >&2 # Redirect to stderr
         for file in "${unique_files[@]}"; do
-            echo "  - $file"
+            echo "  - $file" >&2 # Redirect to stderr
         done
-        echo
+        echo >&2 # Redirect to stderr
     else
-        print_status "$BLUE" "$INFO" "No installed files found."
+        print_status "$BLUE" "$INFO" "No installed files found." >&2 # Redirect to stderr
     fi
     
     # Return the array of unique files

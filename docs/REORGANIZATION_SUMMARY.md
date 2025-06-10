@@ -14,7 +14,8 @@
 
 - **Before**: All files scattered in root directory
 - **After**: Logical folder organization:
-  ```
+
+  ```text
   ├── src/        # Source code
   ├── config/     # Configuration files
   ├── scripts/    # Utility scripts
@@ -208,4 +209,6 @@ The `scripts/screenshot_test.sh` provides an easy way to set up different usage 
 
 ---
 
-**The project is now professionally organized, fully functional, and ready for use! 🚀**
+## 🚀 **Project Ready!**
+
+The project is now professionally organized, fully functional, and ready for use!

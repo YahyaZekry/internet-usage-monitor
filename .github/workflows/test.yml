@@ -53,7 +53,12 @@ jobs:
       - name: Test package installation (Ubuntu/Debian)
         if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'debian')
         run: |
-          sudo -u testuser bash -c 'cd /home/testuser && sudo apt-get install -y conky bc procps libnotify-bin zenity'
+          # Ensure universe repository is enabled
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository -y universe
+          sudo apt-get update
+          # Install conky-all instead of virtual conky package
+          sudo -u testuser bash -c 'cd /home/testuser && sudo apt-get install -y conky-all bc procps libnotify-bin zenity'
 
       - name: Test package installation (Fedora)
         if: contains(matrix.os, 'fedora')
@@ -73,7 +78,7 @@ jobs:
       - name: Test manual installation
         run: |
           sudo -u testuser bash -c 'cd /home/testuser/internet-usage-monitor && 
-            chmod +x src/*.sh scripts/*.sh install.sh uninstall.sh && 
+            chmod +x src/internet_monitor.sh src/conky_usage_helper.sh src/internet_monitor_daemon.sh install.sh uninstall.sh && 
             cp config/conkyrc_internet ~/.conkyrc_internet && 
             cp src/internet_monitor.sh ~/ && 
             cp src/conky_usage_helper.sh ~/ &&
@@ -144,7 +149,11 @@ jobs:
       - name: Install Conky
         run: |
           sudo apt-get update
-          sudo apt-get install -y conky
+          # Ensure universe repository is enabled for conky-all
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository -y universe
+          sudo apt-get update
+          sudo apt-get install -y conky-all
 
       - name: Test Conky config syntax
         run: |
