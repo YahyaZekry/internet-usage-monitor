@@ -82,21 +82,21 @@ jobs:
 
       - name: Test prerequisite detection
         run: |
-          su - testuser -c "cd /github/workspace && bash -x ./install.sh" <<EOF || echo "Expected failure on missing packages"
+          su - testuser -c "cd $GITHUB_WORKSPACE && bash -x ./install.sh" <<EOF || echo "Expected failure on missing packages"
           n
           3
           EOF
 
       - name: Install missing packages via installer
         run: |
-          su - testuser -c "cd /github/workspace && bash -x ./install.sh" <<EOF
+          su - testuser -c "cd $GITHUB_WORKSPACE && bash -x ./install.sh" <<EOF
           y
           4
           EOF
 
       - name: Test fresh installation
         run: |
-          su - testuser -c "cd /github/workspace && ./install.sh" <<EOF
+          su - testuser -c "cd $GITHUB_WORKSPACE && ./install.sh" <<EOF
           1
           4
           EOF
@@ -124,7 +124,7 @@ jobs:
 
       - name: Test update installation
         run: |
-          su - testuser -c "cd /github/workspace && ./install.sh" <<EOF
+          su - testuser -c "cd $GITHUB_WORKSPACE && ./install.sh" <<EOF
           1
           y
           4
@@ -132,7 +132,7 @@ jobs:
 
       - name: Test uninstallation
         run: |
-          su - testuser -c "cd /github/workspace && ./uninstall.sh" <<EOF
+          su - testuser -c "cd $GITHUB_WORKSPACE && ./uninstall.sh" <<EOF
           y
           y
           n
@@ -176,7 +176,7 @@ jobs:
 
       - name: Test systemd timer installation
         run: |
-          su - testuser -c "cd /github/workspace && ./install.sh" <<EOF
+          su - testuser -c "cd $GITHUB_WORKSPACE && ./install.sh" <<EOF
           2
           4
           EOF
@@ -191,7 +191,7 @@ jobs:
 
       - name: Test systemd update
         run: |
-          su - testuser -c "cd /github/workspace && ./install.sh" <<EOF
+          su - testuser -c "cd $GITHUB_WORKSPACE && ./install.sh" <<EOF
           1
           y
           EOF
@@ -219,7 +219,7 @@ jobs:
 
       - name: Test Conky configuration
         run: |
-          su - testuser -c "cd /github/workspace && ./install.sh" <<EOF
+          su - testuser -c "cd $GITHUB_WORKSPACE && ./install.sh" <<EOF
           4
           EOF
 
