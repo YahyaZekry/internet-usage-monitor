@@ -1,18 +1,22 @@
-# Internet Usage Monitor for Linux
+# Internet Usage Monitor for Linux 🌐
 
 Real-time internet usage monitoring with Conky widget and notifications for Arch-based Linux distributions.
 
-**Tested on Garuda Linux (Arch-based), KDE Plasma 6.3**
+**Tested on Garuda Linux (Arch-based), KDE Plasma 6.3** ✅
 
-## Features
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Platform](https://img.shields.io/badge/platform-Linux-green.svg)
+![Shell](https://img.shields.io/badge/shell-Bash-orange.svg)
 
-- Real-time daily usage tracking with customizable limits
-- Desktop widget showing current usage, limit, and progress
-- Notifications at 80% (warning) and 100% (critical) usage
-- Automatic daily reset at midnight
-- Auto-detection of active network interface
+## ✨ Features
 
-## Quick Install
+- 📊 Real-time daily usage tracking with customizable limits
+- 🖥️ Desktop widget showing current usage, limit, and progress
+- 🔔 Notifications at 80% (warning) and 100% (critical) usage
+- 🕛 Automatic daily reset at midnight
+- 🌐 Auto-detection of active network interface
+
+## 🚀 Quick Install
 
 ```bash
 git clone https://github.com/Yahya-Zekry/internet-usage-monitor.git
@@ -23,12 +27,12 @@ chmod +x install.sh
 
 The installer will:
 
-- Install required packages (`conky bc procps-ng libnotify zenity`)
-- Set up monitoring (cron job recommended)
-- Configure and start the desktop widget
-- Enable autostart on login
+- 📦 Install required packages (`conky bc procps-ng libnotify zenity`)
+- ⚙️ Set up monitoring (cron job recommended)
+- 🖥️ Configure and start the desktop widget
+- 🚀 Enable autostart on login
 
-## Configuration
+## ⚙️ Configuration
 
 Edit daily limit in `config/config.sh`:
 
@@ -36,7 +40,7 @@ Edit daily limit in `config/config.sh`:
 DAILY_LIMIT_GB=2  # Set your daily limit in GB
 ```
 
-## Usage
+## 📋 Usage
 
 ```bash
 # Check current usage
@@ -52,26 +56,25 @@ DAILY_LIMIT_GB=2  # Set your daily limit in GB
 ~/internet_monitor.sh test-warning
 ```
 
-## Widget Control
+## 🎨 Widget Control
 
 ```bash
 # Restart widget with new config
 pkill conky && conky -c ~/.conkyrc_internet &
 ```
 
-## Monitoring Options
+## 🔄 Monitoring Options
 
-1. **Cron Job (Recommended)** - Runs every 5 minutes, universal compatibility
-2. **Systemd Timer** - More precise timing, systemd-dependent
-3. **Daemon Mode** - Continuous monitoring
+1. **⏰ Cron Job (Recommended)** - Runs every 5 minutes, universal compatibility
+2. **⏲️ Systemd User Service** - More precise timing, higher complexity
 
-## Uninstall
+## 🗑️ Uninstall
 
 ```bash
 ./uninstall.sh
 ```
 
-## File Structure
+## 📁 File Structure
 
 ```
 ~/.internet_usage_data     # Usage data
@@ -82,12 +85,28 @@ pkill conky && conky -c ~/.conkyrc_internet &
 ~/config.sh               # Configuration
 ```
 
-## Support
+## 🤝 Contributing
 
-- Bug reports: GitHub issues
-- Documentation: See `docs/` folder for advanced usage
-- License: MIT
+1. **Fork** the repository
+2. **Clone** your fork: `git clone https://github.com/yourusername/internet-usage-monitor.git`
+3. **Create** feature branch: `git checkout -b feature/amazing-feature`
+4. **Make** your changes and test thoroughly
+5. **Commit** changes: `git commit -m 'Add amazing feature'`
+6. **Push** to branch: `git push origin feature/amazing-feature`
+7. **Open** Pull Request
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+**Copyright (c) 2025 Yahya Zekry**
+
+## 📞 Support
+
+- 🐛 **Bug reports**: GitHub issues
+- 📚 **Documentation**: See `docs/` folder for advanced usage
+- 💡 **Feature requests**: Submit via GitHub issues
 
 ---
 
-**Made for Arch-based Linux distributions**
+> _"Keep your data usage as balanced as your yerba mate blend — never too much, always just right."_ 🧉⚖️
