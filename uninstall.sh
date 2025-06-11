@@ -31,6 +31,11 @@ print_status() {
     echo -e "${color}${icon} ${message}${NC}"
 }
 
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
 # Function to backup user data
 backup_user_data() {
     local backup_dir="$HOME/.internet_monitor_backup_$(date +%Y%m%d_%H%M%S)"
@@ -147,34 +152,20 @@ remove_files() {
     
     # Remove the files with better error handling
     local removed_count=0
+    set +e # Temporarily disable exit on error for file removal
     for file in "${files_to_remove[@]}"; do
         if [ -f "$file" ]; then
-            # Check if file is in use, only if lsof command exists
-            local file_in_use=false
-            if command_exists lsof; then
-                if lsof "$file" >/dev/null 2>&1; then
-                    file_in_use=true
-                fi
-            fi
-            
-            if [ "$file_in_use" = true ]; then
-                print_status "$YELLOW" "$WARNING" "File in use (detected by lsof), forcing removal: $file"
-                rm -f "$file" 2>/dev/null || {
-                    print_status "$RED" "$CROSS" "Failed to remove (file in use): $file"
-                    continue
-                }
+            if rm -f "$file" 2>/dev/null; then
+                print_status "$GREEN" "$CHECK" "Removed: $file"
+                ((removed_count++))
             else
-                rm -f "$file" 2>/dev/null || {
-                    print_status "$RED" "$CROSS" "Failed to remove: $file"
-                    continue
-                }
+                print_status "$RED" "$CROSS" "Failed to remove: $file"
             fi
-            print_status "$GREEN" "$CHECK" "Removed: $file"
-            ((removed_count++))
         else
             print_status "$BLUE" "$INFO" "File not found (already removed?): $file"
         fi
     done
+    set -e # Re-enable exit on error
     
     if [ $removed_count -gt 0 ]; then
         print_status "$GREEN" "$CHECK" "Successfully removed $removed_count files"
@@ -328,51 +319,131 @@ show_completion() {
     echo
 }
 
+# Slow echo function for line-by-line delay (typewriter effect)
+slow_echo() {
+    local line
+    while IFS= read -r line; do
+        echo "$line"
+        sleep 0.15
+    done
+}
+
+# Full-width section header with centered title
+section_header() {
+    local title="$1"
+    local term_width=80
+    if command -v tput >/dev/null 2>&1; then
+        term_width=$(tput cols 2>/dev/null || echo 80)
+    fi
+    local line
+    printf -v line '%*s' "$term_width" ''
+    line=${line// /"="}
+    local pad=$(( (term_width - ${#title}) / 2 ))
+    echo -e "${BLUE}${line}${NC}"
+    printf "%*s${BLUE}%s${NC}\n" $pad "" "$title"
+    echo -e "${BLUE}${line}${NC}\n"
+    sleep 1.5
+}
+
+# Helper function for sub-section separators
+section_separator() {
+    echo -e "${BLUE}--------------------------------------------------${NC}\n"
+}
+
 # Main uninstallation flow
 main() {
-    # Warning message
+    section_header "🧉 Internet Usage Monitor Uninstallation"
+    echo -e "${GREEN}Yerba Mate: Energize your day, simplify your system!${NC}"
+    section_separator
+    # Step 1: Confirm
+    section_header "[1/6] Confirm Uninstallation"
     echo -e "${YELLOW}${WARNING} This will remove Internet Usage Monitor from your system.${NC}"
     echo
-    
     # Check if anything is actually installed using robust search
     local potential_files
     mapfile -t potential_files < <(find_installed_files)
-    
     local has_cron=false
     if crontab -l 2>/dev/null | grep -q "internet_monitor.sh"; then
         has_cron=true
     fi
-    
     if [ ${#potential_files[@]} -eq 0 ] && [ "$has_cron" = false ]; then
         print_status "$YELLOW" "$WARNING" "No installation found. Nothing to remove."
         exit 0
     fi
-    
     if [ ${#potential_files[@]} -gt 0 ]; then
         print_status "$GREEN" "$CHECK" "Found installation with ${#potential_files[@]} files."
+        echo -e "${BLUE}Files to be removed:${NC}"
+        for file in "${potential_files[@]}"; do
+            echo "- $file"
+        done
     fi
-    
     if [ "$has_cron" = true ]; then
         print_status "$GREEN" "$CHECK" "Found cron job installation."
     fi
-    
-    # Confirm uninstallation
     read -p "Are you sure you want to continue? (y/N): " REPLY
     echo
-    local response_char="${REPLY:0:1}" # Get the first character
+    local response_char="${REPLY:0:1}"
     if [[ ! "$response_char" =~ ^[Yy]$ ]]; then
         print_status "$BLUE" "$INFO" "Uninstallation cancelled."
         exit 0
     fi
-    
+    section_separator
+    # Step 2: Backup user data
+    section_header "[2/6] Backup User Data"
     backup_user_data
+    section_separator
+    # Step 3: Stop running processes
+    section_header "[3/6] Stop Running Processes"
     stop_processes
+    section_separator
+    # Step 4: Remove scheduled jobs/services
+    section_header "[4/6] Remove Scheduled Jobs/Services"
     remove_cron_jobs
     remove_systemd_services
+    section_separator
+    # Step 5: Remove autostart entries
+    section_header "[5/6] Remove Autostart Entries"
     remove_autostart_entries
-    remove_files
+    section_separator
+    # Step 6: Remove files and user data
+    section_header "[6/6] Remove Files & User Data"
+    remove_files_with_list "${potential_files[@]}"
     remove_user_data
+    section_separator
+    # Completion
+    section_header "🎉 Uninstallation Complete"
+    echo -e "${GREEN}Yerba Mate: Clean system, clear mind!${NC}"
     show_completion
+}
+
+# Remove files using a provided list, no confirmation
+remove_files_with_list() {
+    print_status "$BLUE" "$INFO" "Removing installed files..."
+    local files_to_remove=("$@")
+    if [ ${#files_to_remove[@]} -eq 0 ]; then
+        print_status "$BLUE" "$INFO" "No files found to remove."
+        return
+    fi
+    local removed_count=0
+    set +e
+    for file in "${files_to_remove[@]}"; do
+        if [ -f "$file" ]; then
+            if rm -f "$file" 2>/dev/null; then
+                print_status "$GREEN" "$CHECK" "Removed: $file"
+                ((removed_count++))
+            else
+                print_status "$RED" "$CROSS" "Failed to remove: $file"
+            fi
+        else
+            print_status "$BLUE" "$INFO" "File not found (already removed?): $file"
+        fi
+    done
+    set -e
+    if [ $removed_count -gt 0 ]; then
+        print_status "$GREEN" "$CHECK" "Successfully removed $removed_count files"
+    else
+        print_status "$YELLOW" "$WARNING" "No files were removed"
+    fi
 }
 
 # Run main function

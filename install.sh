@@ -22,6 +22,7 @@ ROCKET="🚀"
 
 echo -e "${BLUE}${ROCKET} Internet Usage Monitor Installation${NC}"
 echo -e "${BLUE}======================================${NC}"
+echo -e "${GREEN}Yerba Mate: Energize your day, simplify your system!${NC}"
 echo
 
 # Function to print colored output
@@ -245,7 +246,6 @@ install_files() {
                 print_status "$BLUE" "$INFO" "Updating existing installation..."
                 backup_existing_installation
                 print_status "$GREEN" "$CHECK" "Ready to proceed with update..."
-                print_status "$BLUE" "$INFO" "DEBUG: Continuing after backup step..."
                 ;;
             2)
                 print_status "$BLUE" "$INFO" "Performing fresh installation..."
@@ -306,13 +306,13 @@ install_files() {
         fi
         
         # Check and stop Conky processes
-        if pgrep conky > /dev/null; then
-            print_status "$YELLOW" "$WARNING" "Found running Conky processes, stopping..."
-            pkill conky 2>/dev/null || true
+        if pgrep -f "conky.*.conkyrc_internet" > /dev/null; then
+            print_status "$YELLOW" "$WARNING" "Found running Conky widget, stopping..."
+            pkill -f "conky.*.conkyrc_internet" 2>/dev/null || true
             sleep 1
-            print_status "$GREEN" "$CHECK" "Conky processes stopped"
+            print_status "$GREEN" "$CHECK" "Conky widget stopped"
         else
-            print_status "$BLUE" "$INFO" "No Conky processes found"
+            print_status "$BLUE" "$INFO" "No Conky widget found"
         fi
         
         # Force remove any PID files
@@ -339,7 +339,8 @@ install_files() {
     print_status "$GREEN" "$CHECK" "Updated Conky configuration"
     
     # Handle config file specially for updates
-    if [ -f "$HOME/config.sh" ] && detect_existing_installation; then
+    if [ -f "$HOME/config.sh" ] && [ "$install_choice" = "2" ]; then
+        # Only ask about config during fresh install
         print_status "$YELLOW" "$WARNING" "Found existing config.sh"
         echo
         read -p "Do you want to keep your existing configuration? (Y/n): " -n 1 -r
@@ -351,59 +352,31 @@ install_files() {
             print_status "$BLUE" "$INFO" "Kept existing configuration"
         fi
     else
+        # During update or fresh install without existing config, always copy
         cp config/config.sh "$HOME/"
         print_status "$GREEN" "$CHECK" "Installed configuration file"
     fi
     
+    # Only prompt to restore backup during fresh install
+    if [ "$install_choice" = "2" ]; then
+        local backup_dir
+        backup_dir=$(find "$HOME" -maxdepth 1 -type d -name ".internet_monitor_backup_*" | sort | tail -n 1)
+        if [ -n "$backup_dir" ]; then
+            print_status "$YELLOW" "$WARNING" "Found backup directory: $backup_dir"
+            read -p "Restore previous usage data and logs from backup? (Y/n): " REPLY
+            local response_char="${REPLY:0:1}"
+            if [[ ! "$response_char" =~ ^[Nn]$ ]]; then
+                cp -r "$backup_dir/usage_data" "$HOME/" 2>/dev/null || true
+                cp -r "$backup_dir/logs" "$HOME/" 2>/dev/null || true
+                print_status "$GREEN" "$CHECK" "Restored usage data and logs from backup."
+            else
+                print_status "$BLUE" "$INFO" "Skipped restoring usage data and logs."
+            fi
+        fi
+    fi
+
     print_status "$GREEN" "$CHECK" "Files installed/updated successfully"
     echo
-    
-    # Show update completion message
-    # Note: We check for update by looking at the original choice, not current state
-    if [ -n "$install_choice" ] && [ "$install_choice" = "1" -o "$install_choice" = "2" ]; then
-        echo -e "${GREEN}=========================================${NC}"
-        echo -e "${GREEN}🎉 UPDATE COMPLETE! 🎉${NC}"
-        echo -e "${GREEN}=========================================${NC}"
-        echo
-        print_status "$GREEN" "$CHECK" "All scripts have been updated to the latest version!"
-        echo
-        echo -e "${BLUE}Applying the updates automatically:${NC}"
-        
-        # 1. Restart systemd timer if it exists
-        if systemctl --user is-active internet-monitor.timer >/dev/null 2>&1; then
-            print_status "$BLUE" "$INFO" "Restarting systemd timer..."
-            systemctl --user restart internet-monitor.timer 2>/dev/null || true
-            print_status "$GREEN" "$CHECK" "Systemd timer restarted"
-        else
-            print_status "$BLUE" "$INFO" "No systemd timer found to restart"
-        fi
-        
-        # 2. Start Conky widget with new configuration (if not in CI)
-        if [ "$CI" != "true" ] && [ -n "$DISPLAY" ]; then
-            print_status "$BLUE" "$INFO" "Attempting to start Conky widget with new configuration..."
-            (conky -c ~/.conkyrc_internet &) && print_status "$GREEN" "$CHECK" "Conky widget start initiated." || print_status "$YELLOW" "$WARNING" "Conky widget failed to start or no display."
-        else
-            print_status "$BLUE" "$INFO" "Skipping Conky auto-start in CI/headless environment."
-            echo "          You can start it manually: conky -c ~/.conkyrc_internet &"
-        fi
-        
-        # 3. Test the updated scripts
-        print_status "$BLUE" "$INFO" "Testing updated scripts..."
-        if ~/internet_monitor.sh usage >/dev/null 2>&1; then
-            print_status "$GREEN" "$CHECK" "Updated scripts working correctly"
-        else
-            print_status "$YELLOW" "$WARNING" "Script test had issues (may be normal on first run)"
-        fi
-        
-        echo
-        print_status "$BLUE" "$INFO" "Your data and logs are preserved during the update."
-        echo
-        echo -e "${BLUE}Manual commands (if needed):${NC}"
-        echo "• Restart systemd timer: ${YELLOW}systemctl --user restart internet-monitor.timer${NC}"
-        echo "• Start Conky widget: ${YELLOW}conky -c ~/.conkyrc_internet &${NC}"
-        echo "• Test scripts: ${YELLOW}~/internet_monitor.sh usage${NC}"
-        echo
-    fi
 }
 
 # Function to test installation
@@ -423,7 +396,7 @@ test_installation() {
         print_status "$GREEN" "$CHECK" "Notification system working"
     fi
     
-    # Test Conky config
+    # Test Conky config (without starting it)
     if [ -f "$HOME/.conkyrc_internet" ]; then
         print_status "$GREEN" "$CHECK" "Conky configuration installed"
     fi
@@ -453,6 +426,107 @@ detect_existing_autostart() {
     return 1
 }
 
+# Function to handle existing Conky setups
+handle_existing_conky() {
+    print_status "$BLUE" "$INFO" "🔍 Checking for existing Conky configurations..."
+    
+    # Check for running Conky processes (excluding our own widget)
+    local other_conky_pids
+    other_conky_pids=$(pgrep -f "conky" | grep -v "conky.*.conkyrc_internet" || true)
+
+    if [ -n "$other_conky_pids" ]; then
+        print_status "$YELLOW" "$WARNING" "Found other Conky processes (PIDs: $other_conky_pids)"
+        echo
+        echo -e "${YELLOW}⚠️  IMPORTANT: Multiple Conky widgets can cause conflicts!${NC}"
+        echo "The existing Conky widgets might interfere with the Internet Usage Monitor widget."
+        echo
+        read -p "Do you want to stop other Conky processes now? (Y/n): " REPLY
+        local response_char="${REPLY:0:1}"
+        if [[ ! "$response_char" =~ ^[Nn]$ ]]; then
+            pkill -f "conky" | grep -v "conky.*.conkyrc_internet" || true
+            print_status "$GREEN" "$CHECK" "Stopped other Conky processes"
+            sleep 1 # Give time for processes to terminate
+        else
+            print_status "$BLUE" "$INFO" "Keeping other Conky processes running (may cause widget conflicts)"
+        fi
+    else
+        print_status "$GREEN" "$CHECK" "No other Conky processes currently running"
+    fi
+    echo
+
+    # Check for default/existing Conky configuration files
+    local other_conky_configs=()
+    local default_conky_found=false
+    
+    if [ -f "$HOME/.conkyrc" ] && ! cmp -s "$HOME/.conkyrc" "$HOME/.conkyrc_internet" 2>/dev/null; then
+        other_conky_configs+=("$HOME/.conkyrc")
+        default_conky_found=true
+    fi
+    
+    if [ -f "$HOME/.config/conky/conky.conf" ] && ! cmp -s "$HOME/.config/conky/conky.conf" "$HOME/.conkyrc_internet" 2>/dev/null; then
+         # Avoid adding if it's a symlink to our own config, or if it's the same file (though path is different)
+        if ! [ -L "$HOME/.config/conky/conky.conf" ] || [ "$(readlink -f "$HOME/.config/conky/conky.conf")" != "$(readlink -f "$HOME/.conkyrc_internet")" ]; then
+            other_conky_configs+=("$HOME/.config/conky/conky.conf")
+        fi
+    fi
+
+    if [ ${#other_conky_configs[@]} -gt 0 ]; then
+        if [ "$default_conky_found" = true ]; then
+            print_status "$YELLOW" "$WARNING" "Found default Conky configuration files that may conflict:"
+        else
+            print_status "$YELLOW" "$WARNING" "Found existing Conky configuration files:"
+        fi
+        
+        for cfg in "${other_conky_configs[@]}"; do
+            echo "  - $cfg"
+        done
+        echo
+        
+        if [ "$default_conky_found" = true ]; then
+            echo -e "${YELLOW}🗑️  The default Conky widget may interfere with the Internet Usage Monitor.${NC}"
+            echo "Would you like to backup and remove these configurations to prevent conflicts?"
+        else
+            echo -e "${YELLOW}⚠️  These configurations may cause widget conflicts.${NC}"
+            echo "Would you like to backup and rename them to prevent conflicts?"
+        fi
+        echo
+        
+        read -p "Backup and remove conflicting Conky configurations? (Y/n): " REPLY
+        local response_char="${REPLY:0:1}"
+        if [[ ! "$response_char" =~ ^[Nn]$ ]]; then
+            for cfg in "${other_conky_configs[@]}"; do
+                local backup_name="${cfg}.backup_by_ium_$(date +%Y%m%d_%H%M%S)"
+                mv "$cfg" "$backup_name"
+                print_status "$GREEN" "$CHECK" "Backed up and removed: $cfg → $(basename "$backup_name")"
+            done
+            echo
+            print_status "$GREEN" "$CHECK" "✨ Default/conflicting Conky configurations have been safely backed up!"
+            print_status "$BLUE" "$INFO" "Your Internet Usage Monitor widget will now have a clean slate."
+        else
+            print_status "$BLUE" "$INFO" "Keeping existing Conky configurations (may cause widget overlaps)"
+        fi
+    else
+        print_status "$GREEN" "$CHECK" "No conflicting Conky configurations found"
+    fi
+    echo
+
+    # Offer to create an empty ~/.conkyrc to suppress system default widget
+    if [ ! -f "$HOME/.conkyrc" ]; then
+        echo
+        print_status "$YELLOW" "$WARNING" "If Conky is started without a config, it will use the system default at /usr/share/doc/conky/conky.conf."
+        echo "This can cause the default widget to appear unexpectedly."
+        read -p "Would you like to create an empty ~/.conkyrc to suppress the default widget? (Y/n): " REPLY
+        response_char="${REPLY:0:1}"
+        if [[ ! "$response_char" =~ ^[Nn]$ ]]; then
+            touch "$HOME/.conkyrc"
+            print_status "$GREEN" "$CHECK" "Created empty ~/.conkyrc to block the system default widget."
+        else
+            print_status "$BLUE" "$INFO" "No ~/.conkyrc will be created. The system default widget may appear if Conky is started without a config."
+        fi
+        echo
+    fi
+}
+
 # Function to setup autostart options
 setup_autostart() {
     local existing_autostart=$(detect_existing_autostart)
@@ -474,24 +548,19 @@ setup_autostart() {
     print_status "$BLUE" "$INFO" "Autostart Setup Options:"
     echo "1) Cron job (every 5 minutes) - Recommended for reliability and lower resource usage"
     echo "2) Systemd user service - More precise timing but higher complexity"
-    echo "3) Desktop autostart entry"
-    echo "4) Skip autostart setup"
+    echo "3) Skip autostart setup"
     echo
-    
-    read -p "Choose an option (1-4): " choice
+    read -p "Choose an option (1-3): " choice
     
     case $choice in
         1)
             print_status "$YELLOW" "$WARNING" "Setting up cron job..."
-            # Add to crontab if not already present
             (crontab -l 2>/dev/null | grep -v "internet_monitor.sh"; echo "*/5 * * * * $HOME/internet_monitor.sh") | crontab -
             print_status "$GREEN" "$CHECK" "Cron job added (runs every 5 minutes)"
             ;;
         2)
             print_status "$YELLOW" "$WARNING" "Setting up systemd user service..."
             mkdir -p "$HOME/.config/systemd/user"
-            
-            # Create service file
             cat > "$HOME/.config/systemd/user/internet-monitor.service" << EOF
 [Unit]
 Description=Internet Usage Monitor
@@ -504,8 +573,6 @@ ExecStart=%h/internet_monitor.sh
 [Install]
 WantedBy=default.target
 EOF
-            
-            # Create timer file
             cat > "$HOME/.config/systemd/user/internet-monitor.timer" << EOF
 [Unit]
 Description=Run Internet Monitor every 5 minutes
@@ -518,31 +585,22 @@ Persistent=true
 [Install]
 WantedBy=timers.target
 EOF
-            
-            # Enable and start
             systemctl --user daemon-reload
             systemctl --user enable internet-monitor.timer
             systemctl --user start internet-monitor.timer
-            
             print_status "$GREEN" "$CHECK" "Systemd timer created and started"
             ;;
         3)
-            print_status "$YELLOW" "$WARNING" "Setting up desktop autostart..."
-            mkdir -p "$HOME/.config/autostart"
-            
-            # Monitor autostart
-            cat > "$HOME/.config/autostart/internet-monitor.desktop" << EOF
-[Desktop Entry]
-Type=Application
-Name=Internet Usage Monitor
-Exec=$HOME/internet_monitor.sh
-Hidden=false
-NoDisplay=false
-X-GNOME-Autostart-enabled=true
-EOF
-            
-            # Conky autostart
-            cat > "$HOME/.config/autostart/internet-conky.desktop" << EOF
+            print_status "$BLUE" "$INFO" "Skipping autostart setup"
+            ;;
+        *)
+            print_status "$YELLOW" "$WARNING" "Invalid choice, skipping autostart setup"
+            ;;
+    esac
+    # Always create Conky autostart entry unless skipping autostart
+    if [ "$choice" = "1" ] || [ "$choice" = "2" ]; then
+        mkdir -p "$HOME/.config/autostart"
+        cat > "$HOME/.config/autostart/internet-conky.desktop" << EOF
 [Desktop Entry]
 Type=Application
 Name=Internet Usage Conky
@@ -551,32 +609,15 @@ Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
 EOF
-            
-            print_status "$GREEN" "$CHECK" "Desktop autostart entries created"
-            ;;
-        4)
-            print_status "$BLUE" "$INFO" "Skipping autostart setup"
-            ;;
-        *)
-            print_status "$YELLOW" "$WARNING" "Invalid choice, skipping autostart setup"
-            ;;
-    esac
+        print_status "$GREEN" "$CHECK" "Conky autostart entry created"
+    fi
 }
 
-# Function to show completion message
-show_completion() {
+# Function to show completion message and auto-start everything
+show_completion_and_auto_start() {
     echo
     print_status "$GREEN" "$ROCKET" "Installation completed successfully!"
-    echo
-    echo -e "${BLUE}Quick Start:${NC}"
-    echo "1. Test the monitor manually:"
-    echo -e "   ${YELLOW}$HOME/internet_monitor.sh${NC}"
-    echo
-    echo "2. Start the Conky widget:"
-    echo -e "   ${YELLOW}conky -c ~/.conkyrc_internet &${NC}"
-    echo
-    echo "3. Check your usage:"
-    echo -e "   ${YELLOW}tail ~/.internet_usage.log${NC}"
+    echo -e "${GREEN}Yerba Mate: Enjoy balanced internet usage, like a perfectly brewed mate!${NC}"
     echo
     echo -e "${BLUE}Configuration:${NC}"
     echo "- Edit daily limit in both scripts (default: 2GB)"
@@ -587,28 +628,196 @@ show_completion() {
     echo "- Full README: $(pwd)/README.md"
     echo "- GitHub: https://github.com/Yahya-Zekry/internet-usage-monitor"
     echo
-    print_status "$GREEN" "$CHECK" "Enjoy monitoring your internet usage!"
+    print_status "$BLUE" "$INFO" "🚀 Auto-starting Internet Usage Monitor..."
+    echo
+    # 1. Start the monitoring daemon
+    print_status "$GREEN" "1." "Starting monitor daemon:"
+    if [ -f "$HOME/internet_monitor_daemon.sh" ]; then
+        # Stop any existing daemon first
+        if pgrep -f "internet_monitor_daemon.sh" > /dev/null; then
+            pkill -f "internet_monitor_daemon.sh"
+            sleep 1
+        fi
+        # Start the daemon in background
+        "$HOME/internet_monitor_daemon.sh" start >/dev/null 2>&1 &
+        sleep 3
+        if pgrep -f "internet_monitor_daemon.sh" > /dev/null; then
+            print_status "$GREEN" "$CHECK" "Monitor daemon started successfully in background"
+        else
+            print_status "$YELLOW" "$WARNING" "Monitor daemon may not have started properly"
+        fi
+    else
+        print_status "$YELLOW" "$WARNING" "Monitor daemon script not found"
+    fi
+    echo
+    # 2. Test the monitor script
+    print_status "$GREEN" "2." "Testing monitor script (current usage):"
+    if "$HOME/internet_monitor.sh" usage; then
+        print_status "$GREEN" "$CHECK" "Monitor script working correctly"
+    else
+        print_status "$YELLOW" "$WARNING" "Monitor script had an issue (may be normal on first run)"
+    fi
+    echo
+    # 3. Start Conky widget
+    print_status "$GREEN" "3." "Starting Conky widget:"
+    if [ "$CI" != "true" ] && [ -n "$DISPLAY" ]; then
+        # Only kill Conky if it's running with our config
+        if pgrep -f "conky.*.conkyrc_internet" > /dev/null; then
+            print_status "$BLUE" "$INFO" "Stopping existing Conky widget (using our config)..."
+            pkill -f "conky.*.conkyrc_internet"
+            sleep 1
+        fi
+        print_status "$BLUE" "$INFO" "Validating Conky setup..."
+        if [ -f "$HOME/conky_usage_helper.sh" ] && [ -x "$HOME/conky_usage_helper.sh" ]; then
+            print_status "$GREEN" "$CHECK" "Conky helper script is ready"
+        else
+            print_status "$YELLOW" "$WARNING" "Conky helper script missing or not executable"
+        fi
+        # Create a temporary launcher script for this session
+        local launcher="$HOME/.start_conky_once.sh"
+        echo "#!/bin/bash" > "$launcher"
+        echo "conky -c \"$HOME/.conkyrc_internet\" &" >> "$launcher"
+        chmod +x "$launcher"
+        nohup bash "$launcher" >/dev/null 2>&1 &
+        # Remove the launcher after a short delay
+        (sleep 3 && rm -f "$launcher") &
+        print_status "$GREEN" "$CHECK" "Conky widget started for this session. It will also autostart on next login."
+    else
+        print_status "$BLUE" "$INFO" "Skipping Conky start (no display environment detected)"
+        echo "          You can start it manually in a GUI session: nohup conky -c ~/.conkyrc_internet >/dev/null 2>&1 & disown"
+    fi
+    echo
+    # 4. Test notification system
+    print_status "$GREEN" "4." "Testing notification system:"
+    if command_exists notify-send; then
+        if notify-send "Internet Usage Monitor" "🎉 Installation completed! Your internet usage is now being monitored." -t 5000 2>/dev/null; then
+            print_status "$GREEN" "$CHECK" "Notification system working! You should see a notification on your desktop."
+        else
+            print_status "$YELLOW" "$WARNING" "Notification command executed but may not be visible in headless/SSH environment"
+        fi
+    else
+        print_status "$YELLOW" "$WARNING" "notify-send not available"
+    fi
+    echo
+    # 5. Show current usage log
+    print_status "$GREEN" "5." "Current usage status:"
+    if [ -f "$HOME/.internet_usage.log" ]; then
+        echo -e "${BLUE}Last few log entries:${NC}"
+        tail -5 "$HOME/.internet_usage.log" | sed 's/^/   /'
+    else
+        print_status "$BLUE" "$INFO" "Log file will be created on next monitoring cycle"
+    fi
+    echo
+    # 6. Final status summary
+    echo -e "${GREEN}=========================================${NC}"
+    echo -e "${GREEN}🎉 INTERNET USAGE MONITOR IS NOW RUNNING! 🎉${NC}"
+    echo -e "${GREEN}=========================================${NC}"
+    echo
+    print_status "$GREEN" "$CHECK" "✨ Everything is now active and monitoring your internet usage!"
+    echo
+    echo -e "${BLUE}What's running:${NC}"
+    echo "• 📊 Monitor daemon - tracking your usage automatically"
+    echo "• 📱 Conky widget - showing real-time usage on desktop"
+    echo "• ⏰ Scheduled monitoring - will continue after restart"
+    echo "• 📝 Usage logging - saving data to ~/.internet_usage.log"
+    echo
+    echo -e "${BLUE}Manual commands (if needed):${NC}"
+    echo "• Check usage: ${YELLOW}$HOME/internet_monitor.sh usage${NC}"
+    echo "• Restart widget: ${YELLOW}conky -c ~/.conkyrc_internet &${NC}"
+    echo "• View logs: ${YELLOW}tail -f ~/.internet_usage.log${NC}"
+    echo "• Stop daemon: ${YELLOW}$HOME/internet_monitor_daemon.sh stop${NC}"
+    echo
+    print_status "$GREEN" "$ROCKET" "Enjoy monitoring your internet usage!"
+}
+
+# Function to restore user data from backup
+restore_user_data_from_backup() {
+    local latest_backup
+    latest_backup=$(ls -1dt "$HOME"/.internet_monitor_backup_* 2>/dev/null | head -n 1)
+    if [ -n "$latest_backup" ]; then
+        print_status "$YELLOW" "$WARNING" "Found backup directory: $latest_backup"
+        echo
+        read -p "Restore previous usage data and logs from backup? (Y/n): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+            local restored=0
+            for file in ".internet_usage.log" ".internet_usage_data"; do
+                if [ -f "$latest_backup/$file" ] && [ ! -f "$HOME/$file" ]; then
+                    cp "$latest_backup/$file" "$HOME/"
+                    print_status "$GREEN" "$CHECK" "Restored $file from backup."
+                    restored=1
+                fi
+            done
+            if [ $restored -eq 0 ]; then
+                print_status "$BLUE" "$INFO" "No files needed to be restored (already present)."
+            fi
+        else
+            print_status "$BLUE" "$INFO" "Skipped restoring user data from backup."
+        fi
+    fi
+}
+
+# Slow echo function for line-by-line delay (typewriter effect)
+slow_echo() {
+    local line
+    while IFS= read -r line; do
+        echo "$line"
+        sleep 0.15
+    done
+}
+
+# Full-width section header with centered title
+section_header() {
+    local title="$1"
+    local term_width=80
+    if command -v tput >/dev/null 2>&1; then
+        term_width=$(tput cols 2>/dev/null || echo 80)
+    fi
+    local line
+    printf -v line '%*s' "$term_width" ''
+    line=${line// /"="}
+    local pad=$(( (term_width - ${#title}) / 2 ))
+    echo -e "${BLUE}${line}${NC}"
+    printf "%*s${BLUE}%s${NC}\n" $pad "" "$title"
+    echo -e "${BLUE}${line}${NC}\n"
+    sleep 1.5
 }
 
 # Main installation flow
 main() {
+    section_header "🚀 Internet Usage Monitor Installation"
+    section_separator
     # Check if running as root
     if [ "$EUID" -eq 0 ]; then
         print_status "$RED" "$CROSS" "Please don't run this script as root!"
         exit 1
     fi
-    
     # Check if in correct directory
     if [ ! -f "install.sh" ]; then
         print_status "$RED" "$CROSS" "Please run this script from the project directory."
         exit 1
     fi
-    
+    section_header "[1/6] Checking prerequisites"
     check_prerequisites
+    section_separator
+    section_header "[2/6] Installing files"
     install_files
+    # Only restore backup if user chose fresh install (option 2)
+    if [ "$install_choice" = "2" ]; then
+        restore_user_data_from_backup
+    fi
+    section_separator
+    section_header "[3/6] Testing installation"
     test_installation
+    section_separator
+    section_header "[4/6] Checking for existing Conky configurations"
+    handle_existing_conky # Call the new function
+    section_separator
+    section_header "[5/6] Autostart Setup Options"
     setup_autostart
-    show_completion
+    section_separator
+    section_header "[6/6] Finalizing & Auto-Starting Everything"
+    show_completion_and_auto_start # Auto-start everything after installation
 }
 
 # Run main function
