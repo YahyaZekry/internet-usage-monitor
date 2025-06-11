@@ -67,15 +67,18 @@ chmod +x install.sh
 ./install.sh
 ```
 
+> _"Start your monitoring journey as you would your mate ritual: with clarity, balance, and a touch of tradition!"_ 🧉
+
 The intelligent installer will brew your monitoring setup like preparing the perfect mate:
 
 - ✅ **Check prerequisites** and install missing packages (gathering the right yerba)
 - ✅ **Detect existing installations** and offer update options (respecting the existing gourd)
 - ✅ **Backup your data** before any changes (preserving your mate traditions)
 - ✅ **Install/update scripts** with proper permissions (setting up the bombilla perfectly)
-- ✅ **Configure monitoring** (cron, systemd, or autostart) (establishing your daily mate ritual)
+- ✅ **Configure monitoring** (cron or systemd) — **Conky autostart is always enabled** (no more separate desktop autostart option)
 - ✅ **Test the installation** automatically (first sip to ensure quality)
-- ✅ **Start the widget** immediately (enjoying your perfectly prepared digital mate)
+- ✅ **Start the widget** immediately (enjoying your perfectly prepared digital mate — via a temporary launcher script)
+- ✅ **Enjoy modern, step-based output** with Yerba Mate slogans and optional slow mode (`SLOW_MODE=1`)
 
 ### 🔄 **Smart Update System**
 
@@ -207,8 +210,10 @@ NOTIFICATION_URGENCY_CRITICAL="critical"
 
 ### **Widget Control**
 
+> _"Your Conky widget will always greet you on login, just like your morning mate."_ 🧉
+
 ```bash
-# Start widget
+# Start widget (normally handled automatically)
 conky -c ~/.conkyrc_internet &
 
 # Stop widget
@@ -217,6 +222,8 @@ pkill conky
 # Restart with new config
 pkill conky && conky -c ~/.conkyrc_internet &
 ```
+
+**Note:** After installation, the widget starts immediately for your current session via a temporary launcher script, and will autostart on login thanks to the `.desktop` entry.
 
 ### **Helper Script Options**
 
@@ -336,6 +343,12 @@ internet-usage-monitor/
 ./uninstall.sh                  # Comprehensive removal
 ```
 
+> _"Uninstalling is as smooth as pouring a fresh mate — one confirmation, clear feedback, and your data is safely backed up."_ 🧉
+
+- **Modern, step-based output** with full-width headers and Yerba Mate slogans
+- **Single confirmation**: See the file list, confirm once, and everything is removed in one go
+- **Automatic backup**: Your data is saved before removal
+
 ### **Service Management**
 
 ```bash
@@ -418,28 +431,17 @@ tail -50 ~/.internet_usage.log
 
 ### **Professional Uninstallation**
 
-The uninstall script searches everywhere:
+The uninstall script searches everywhere and removes all traces in one go:
 
 ```bash
 ./uninstall.sh
 ```
 
-**Searches multiple locations:**
-
-- `$HOME/` - Home directory
-- `/usr/local/bin/` - System binaries
-- `/usr/bin/` - System binaries
-- `$HOME/.local/bin/` - User binaries
-- `$HOME/bin/` - User scripts
-- And more...
-
-**Features:**
-
-- ✅ **Backup protection** - Saves your data before removal
-- ✅ **Process management** - Stops running services
-- ✅ **Complete cleanup** - Removes cron jobs, systemd services, autostart entries
-- ✅ **Safety prompts** - Confirms before major operations
-- ✅ **Detailed feedback** - Shows exactly what's being removed
+- **Single confirmation**: Review the file list, confirm, and removal proceeds
+- **Backup protection**: Your data is saved before anything is deleted
+- **Process management**: Stops running services and widget
+- **Complete cleanup**: Removes cron jobs, systemd services, and Conky autostart entry
+- **Detailed feedback**: Modern, readable output with step numbers and slogans
 
 ### **Configuration Preservation**
 
@@ -603,6 +605,19 @@ If you find this project useful:
 
 Made for the Linux community
 
-"Professional monitoring tools should be as reliable as your morning yerba mate ritual - consistent, dependable, and perfectly balanced."
+> _"Professional monitoring tools should be as reliable as your morning yerba mate ritual — consistent, dependable, and perfectly balanced."_
 
-Keep your data usage as balanced as your yerba mate blend - never too much, always just right. 🧉⚖️
+Keep your data usage as balanced as your yerba mate blend — never too much, always just right. 🧉⚖️
+
+---
+
+## 🧉 What's New (v2.1)
+
+- **Modern, Readable Output:** Both `install.sh` and `uninstall.sh` now feature step-based, sectioned output with full-width headers and step numbers for clarity.
+- **Yerba Mate Slogans:** Friendly slogans appear at the start and end of both scripts, and are highlighted throughout the README.
+- **Conky Autostart Always Enabled:** When you choose cron or systemd monitoring, Conky is set to autostart on login (via a `.desktop` entry). The old "desktop autostart" option is removed for simplicity.
+- **Immediate Widget Start:** After install, a temporary launcher script starts Conky for your current session, so you see the widget right away.
+- **Optional Slow Mode:** Enable typewriter-style output for extra readability by running the installer or uninstaller with `SLOW_MODE=1` (e.g., `SLOW_MODE=1 ./install.sh`).
+- **Aligned Uninstall Experience:** Uninstall now confirms the file list only once, then removes everything in one go, with the same modern output style as install.
+
+---
