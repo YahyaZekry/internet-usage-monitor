@@ -1,6 +1,6 @@
 pkgbase = internet-usage-monitor-git
 	pkgdesc = Real-time internet usage monitoring with Conky widget and notifications (git version)
-	pkgver = 0.0.r28.f3ec27e
+	pkgver = 0.0.0.r0.dev
 	pkgrel = 1
 	url = https://github.com/YahyaZekry/internet-usage-monitor
 	arch = any
@@ -12,9 +12,9 @@ pkgbase = internet-usage-monitor-git
 	depends = procps-ng
 	depends = libnotify
 	depends = zenity
-	provides = internet-usage-monitor=0.0.r28.f3ec27e
+	provides = internet-usage-monitor=0.0.0.r0.dev
 	conflicts = internet-usage-monitor
-	source = internet-usage-monitor::git+https://github.com/YahyaZekry/internet-usage-monitor.git#branch=aur-packaging
+	source = internet-usage-monitor::git+https://github.com/YahyaZekry/internet-usage-monitor.git#branch=main
 	sha256sums = SKIP
 
 pkgname = internet-usage-monitor-git
