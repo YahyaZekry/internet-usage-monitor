@@ -204,16 +204,18 @@ case "${1:-}" in
         echo "Daily usage counter reset."
         ;;
     "test-warning")
-        daily_usage=$WARNING_BYTES
-        warning_sent=false
+        daily_usage=$((WARNING_BYTES + 1)) # Set just above threshold
+        warning_sent=false # Ensure warning can be sent
+        # critical_sent should remain as is, or be false if we want a clean slate from critical
         save_usage_data
-        echo "Set usage to warning threshold for testing."
+        echo "Set usage to just ABOVE warning threshold for testing."
         ;;
     "test-critical")
-        daily_usage=$CRITICAL_BYTES
-        critical_sent=false
+        daily_usage=$((CRITICAL_BYTES + 1)) # Set just above threshold
+        warning_sent=false # Ensure warning can be sent again if it was also a critical trigger
+        critical_sent=false # Ensure critical can be sent
         save_usage_data
-        echo "Set usage to critical threshold for testing."
+        echo "Set usage to just ABOVE critical threshold for testing."
         ;;
     "help")
         echo "Usage: $0 [usage|reset|test-warning|test-critical|help]"
