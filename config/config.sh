@@ -3,6 +3,17 @@
 # Internet Usage Monitor - Shared Configuration
 # This file contains all configurable settings for the internet usage monitor
 
+# XDG Base Directory Configuration
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$UID}" # More robust than /tmp
+
+APP_NAME="internet-usage-monitor-git"
+
+CONFIG_DIR="$XDG_CONFIG_HOME/$APP_NAME"
+DATA_DIR="$XDG_DATA_HOME/$APP_NAME"
+RUNTIME_DIR="$XDG_RUNTIME_DIR/$APP_NAME"
+
 # Daily data usage limit (in GB)
 DAILY_LIMIT_GB=2
 
@@ -23,8 +34,8 @@ DAEMON_UPDATE_INTERVAL=30    # Seconds between checks in daemon mode
 CRON_RECOMMENDED_INTERVAL=5  # Minutes for cron job setup
 
 # File locations
-USAGE_DATA_FILE="$HOME/.internet_usage_data"
-LOG_FILE="$HOME/.internet_usage.log"
+USAGE_DATA_FILE="$DATA_DIR/usage_data" # Note: not hidden anymore, placed in app-specific data dir
+LOG_FILE="$DATA_DIR/usage_log"     # Note: not hidden anymore, placed in app-specific data dir
 
 # Derived values (don't modify these)
 DAILY_LIMIT_BYTES=$((DAILY_LIMIT_GB * 1024 * 1024 * 1024))

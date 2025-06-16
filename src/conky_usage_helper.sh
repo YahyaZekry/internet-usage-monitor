@@ -4,26 +4,54 @@
 # Extracts and formats data from usage data file
 
 # Load configuration
-SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+APP_NAME="internet-usage-monitor-git" # Should be defined or sourced from config.sh if it sets it globally
+XDG_CONFIG_HOME_FALLBACK="$HOME/.config"
+XDG_CONFIG_HOME_EFFECTIVE="${XDG_CONFIG_HOME:-$XDG_CONFIG_HOME_FALLBACK}"
 
-# Try to load config from different possible locations
-if [ -f "$SCRIPT_DIR/../config/config.sh" ]; then
-    # Running from project directory
-    source "$SCRIPT_DIR/../config/config.sh"
-elif [ -f "$SCRIPT_DIR/config.sh" ]; then
-    # Running from installed location (same directory)
-    source "$SCRIPT_DIR/config.sh"
-elif [ -f "$HOME/config.sh" ]; then
-    # Running from installed location (home directory)
-    source "$HOME/config.sh"
+DEFAULT_CONFIG_DIR_BASE="/usr/share" # Base for system-wide defaults
+USER_CONFIG_DIR_EFFECTIVE="$XDG_CONFIG_HOME_EFFECTIVE/$APP_NAME"
+
+USER_CONFIG_FILE="$USER_CONFIG_DIR_EFFECTIVE/config.sh"
+DEFAULT_CONFIG_FILE="$DEFAULT_CONFIG_DIR_BASE/$APP_NAME/config.sh"
+
+if [ -f "$USER_CONFIG_FILE" ]; then
+    source "$USER_CONFIG_FILE"
+elif [ -f "$DEFAULT_CONFIG_FILE" ]; then
+    source "$DEFAULT_CONFIG_FILE"
 else
-    echo "Error: Could not find config.sh in any expected location" >&2
-    echo "Looked for:" >&2
-    echo "  $SCRIPT_DIR/../config/config.sh" >&2
-    echo "  $SCRIPT_DIR/config.sh" >&2
-    echo "  $HOME/config.sh" >&2
-    exit 1
+    echo "Error: Configuration file not found in $USER_CONFIG_FILE or $DEFAULT_CONFIG_FILE" >&2
+    # Attempt to source config.sh from SCRIPT_DIR as a last resort for non-AUR execution
+    SCRIPT_DIR_CONFIG_FALLBACK="$(dirname "${BASH_SOURCE[0]}")/config.sh"
+    if [ -f "$SCRIPT_DIR_CONFIG_FALLBACK" ]; then
+        source "$SCRIPT_DIR_CONFIG_FALLBACK"
+        echo "Warning: Using config.sh from script directory $SCRIPT_DIR_CONFIG_FALLBACK as fallback." >&2
+    else
+        SCRIPT_DIR_PROJECT_CONFIG_FALLBACK="$(dirname "${BASH_SOURCE[0]}")/../config/config.sh"
+        if [ -f "$SCRIPT_DIR_PROJECT_CONFIG_FALLBACK" ]; then
+            source "$SCRIPT_DIR_PROJECT_CONFIG_FALLBACK"
+            echo "Warning: Using config.sh from project directory $SCRIPT_DIR_PROJECT_CONFIG_FALLBACK as fallback." >&2
+        else
+             echo "Error: Fallback config.sh also not found at $SCRIPT_DIR_CONFIG_FALLBACK or $SCRIPT_DIR_PROJECT_CONFIG_FALLBACK" >&2
+             exit 1
+        fi
+    fi
 fi
+
+# Ensure XDG directories are defined (they should be by config.sh)
+# Fallbacks for DATA_DIR, CONFIG_DIR, RUNTIME_DIR if not set by config.sh (defensive)
+XDG_DATA_HOME_FALLBACK="$HOME/.local/share"
+XDG_DATA_HOME_EFFECTIVE="${XDG_DATA_HOME:-$XDG_DATA_HOME_FALLBACK}"
+DATA_DIR_EFFECTIVE="${DATA_DIR:-$XDG_DATA_HOME_EFFECTIVE/$APP_NAME}"
+
+# CONFIG_DIR is already USER_CONFIG_DIR_EFFECTIVE
+# RUNTIME_DIR needs a fallback if not set by config.sh
+XDG_RUNTIME_DIR_FALLBACK="/run/user/$UID"
+XDG_RUNTIME_DIR_EFFECTIVE="${XDG_RUNTIME_DIR:-$XDG_RUNTIME_DIR_FALLBACK}"
+RUNTIME_DIR_EFFECTIVE="${RUNTIME_DIR:-$XDG_RUNTIME_DIR_EFFECTIVE/$APP_NAME}"
+
+# Ensure necessary directories exist (primarily for consistency, helper mostly reads)
+mkdir -p "$DATA_DIR_EFFECTIVE" "$USER_CONFIG_DIR_EFFECTIVE" "$RUNTIME_DIR_EFFECTIVE"
+
 
 # Function to extract daily usage in bytes
 get_daily_usage_bytes() {
