@@ -166,7 +166,6 @@ case "$1" in
         usage_bytes=$(get_daily_usage_bytes) # Removed local
         echo "DEBUG_HELPER: usage_bytes='${usage_bytes}'" >&2
         
-        remaining_bytes # Removed local; will be global or assigned directly
         # Ensure variables are treated as integers for arithmetic
         if [[ "${DAILY_LIMIT_BYTES}" =~ ^[0-9]+$ ]] && [[ "${usage_bytes}" =~ ^[0-9]+$ ]]; then
             remaining_bytes=$((DAILY_LIMIT_BYTES - usage_bytes))
