@@ -163,10 +163,10 @@ case "$1" in
     "remaining")
         echo "DEBUG_HELPER: Case 'remaining' entered." >&2
         echo "DEBUG_HELPER: DAILY_LIMIT_BYTES='${DAILY_LIMIT_BYTES}'" >&2
-        local usage_bytes=$(get_daily_usage_bytes)
+        usage_bytes=$(get_daily_usage_bytes) # Removed local
         echo "DEBUG_HELPER: usage_bytes='${usage_bytes}'" >&2
         
-        local remaining_bytes
+        remaining_bytes # Removed local; will be global or assigned directly
         # Ensure variables are treated as integers for arithmetic
         if [[ "${DAILY_LIMIT_BYTES}" =~ ^[0-9]+$ ]] && [[ "${usage_bytes}" =~ ^[0-9]+$ ]]; then
             remaining_bytes=$((DAILY_LIMIT_BYTES - usage_bytes))
@@ -181,7 +181,7 @@ case "$1" in
             remaining_bytes=0
         fi
         
-        local remaining_gb=$(bytes_to_gb $remaining_bytes)
+        remaining_gb=$(bytes_to_gb $remaining_bytes) # Removed local
         echo "DEBUG_HELPER: remaining_gb from bytes_to_gb: '$remaining_gb'" >&2
         
         printf "%.2f GB" "$remaining_gb" # Added quotes around $remaining_gb for printf robustness
