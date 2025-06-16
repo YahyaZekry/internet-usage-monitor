@@ -53,6 +53,17 @@ RUNTIME_DIR_EFFECTIVE="${RUNTIME_DIR:-$XDG_RUNTIME_DIR_EFFECTIVE/$APP_NAME}"
 # Ensure necessary directories exist
 mkdir -p "$DATA_DIR_EFFECTIVE" "$USER_CONFIG_DIR_EFFECTIVE" "$RUNTIME_DIR_EFFECTIVE"
 
+echo "DEBUG: Initial paths from script:" >&2
+echo "DEBUG: APP_NAME='${APP_NAME}'" >&2
+echo "DEBUG: XDG_DATA_HOME_EFFECTIVE='${XDG_DATA_HOME_EFFECTIVE}'" >&2
+echo "DEBUG: DATA_DIR_EFFECTIVE='${DATA_DIR_EFFECTIVE}'" >&2
+echo "DEBUG: USER_CONFIG_DIR_EFFECTIVE='${USER_CONFIG_DIR_EFFECTIVE}'" >&2
+echo "DEBUG: RUNTIME_DIR_EFFECTIVE='${RUNTIME_DIR_EFFECTIVE}'" >&2
+# The following variables are from the sourced config.sh:
+echo "DEBUG: Sourced config - DATA_DIR='${DATA_DIR}'" >&2
+echo "DEBUG: Sourced config - USAGE_DATA_FILE='${USAGE_DATA_FILE}'" >&2
+echo "DEBUG: Sourced config - LOG_FILE='${LOG_FILE}'" >&2
+
 
 # Function to log messages
 log_message() {
@@ -136,6 +147,7 @@ last_total=$current_total
 
 # Function to save usage data
 save_usage_data() {
+    echo "DEBUG: In save_usage_data. Attempting to save data to: $USAGE_DATA_FILE" >&2
     cat > "$USAGE_DATA_FILE" << EOF
 last_date="$last_date"
 last_total=$last_total
@@ -144,6 +156,12 @@ warning_sent=$warning_sent
 critical_sent=$critical_sent
 current_interface="$current_interface"
 EOF
+    if [ $? -eq 0 ]; then
+        echo "DEBUG: Successfully wrote to $USAGE_DATA_FILE" >&2
+        ls -l "$USAGE_DATA_FILE" >&2 # Show file details
+    else
+        echo "DEBUG: Failed to write to $USAGE_DATA_FILE. Error code: $?" >&2
+    fi
 }
 
 # Save current state
