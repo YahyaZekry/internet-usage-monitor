@@ -103,11 +103,20 @@ bytes_to_mb() {
 
 bytes_to_gb() {
     local bytes=$1
+    echo "DEBUG_HELPER: bytes_to_gb received: '$bytes'" >&2
     # Ensure bytes is a valid number
     if [[ ! "$bytes" =~ ^[0-9]+$ ]]; then
+        echo "DEBUG_HELPER: bytes_to_gb input not a number, setting to 0." >&2
         bytes=0
     fi
-    echo "scale=3; $bytes / 1024 / 1024 / 1024" | bc -l 2>/dev/null || echo "0.000"
+    local result=$(echo "scale=3; $bytes / 1024 / 1024 / 1024" | bc -l 2>/dev/null)
+    if [ -z "$result" ]; then # If bc produced empty output
+        echo "DEBUG_HELPER: bc produced empty result, defaulting to 0.000" >&2
+        echo "0.000"
+    else
+        echo "DEBUG_HELPER: bc result: '$result'" >&2
+        echo "$result"
+    fi
 }
 
 # Function to get usage percentage
@@ -152,13 +161,31 @@ case "$1" in
         printf "%.2f GB" $DAILY_LIMIT_GB
         ;;
     "remaining")
-        usage_bytes=$(get_daily_usage_bytes)
-        remaining_bytes=$((DAILY_LIMIT_BYTES - usage_bytes))
-        if [[ $remaining_bytes -lt 0 ]]; then
+        echo "DEBUG_HELPER: Case 'remaining' entered." >&2
+        echo "DEBUG_HELPER: DAILY_LIMIT_BYTES='${DAILY_LIMIT_BYTES}'" >&2
+        local usage_bytes=$(get_daily_usage_bytes)
+        echo "DEBUG_HELPER: usage_bytes='${usage_bytes}'" >&2
+        
+        local remaining_bytes
+        # Ensure variables are treated as integers for arithmetic
+        if [[ "${DAILY_LIMIT_BYTES}" =~ ^[0-9]+$ ]] && [[ "${usage_bytes}" =~ ^[0-9]+$ ]]; then
+            remaining_bytes=$((DAILY_LIMIT_BYTES - usage_bytes))
+        else
+            echo "DEBUG_HELPER: DAILY_LIMIT_BYTES or usage_bytes not numeric. Setting remaining_bytes to 0." >&2
             remaining_bytes=0
         fi
-        remaining_gb=$(bytes_to_gb $remaining_bytes)
-        printf "%.2f GB" $remaining_gb
+        echo "DEBUG_HELPER: calculated remaining_bytes='${remaining_bytes}'" >&2
+        
+        if [[ $remaining_bytes -lt 0 ]]; then
+            echo "DEBUG_HELPER: remaining_bytes is negative, setting to 0." >&2
+            remaining_bytes=0
+        fi
+        
+        local remaining_gb=$(bytes_to_gb $remaining_bytes)
+        echo "DEBUG_HELPER: remaining_gb from bytes_to_gb: '$remaining_gb'" >&2
+        
+        printf "%.2f GB" "$remaining_gb" # Added quotes around $remaining_gb for printf robustness
+        echo "DEBUG_HELPER: Printed remaining GB." >&2
         ;;
     "remaining_mb")
         usage_bytes=$(get_daily_usage_bytes)
