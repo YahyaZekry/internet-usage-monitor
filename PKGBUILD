@@ -3,7 +3,7 @@
 
 pkgname=internet-usage-monitor-git
 _pkgname_src=internet-usage-monitor # This is the actual directory name of the source code
-pkgver=0.0.r16.9db4b12 # Placeholder static pkgver
+pkgver=0.0.r28.f3ec27e # Placeholder static pkgver
 
 pkgver() {
   cd "$_pkgname_src"
@@ -19,7 +19,7 @@ url="https://github.com/YahyaZekry/internet-usage-monitor"
 license=('MIT')
 depends=('bash' 'conky' 'bc' 'procps-ng' 'libnotify' 'zenity')
 makedepends=('git')
-source=("${_pkgname_src}::git+${url}.git#branch=main") # Specify main branch if not default
+source=("${_pkgname_src}::git+${url}.git#branch=aur-packaging") # Specify aur-packaging branch
 # Or if you want to package a specific release/tag:
 # source=("${_pkgname_src}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz")
 # Note: The source array uses _pkgname_src for the directory, which is correct.

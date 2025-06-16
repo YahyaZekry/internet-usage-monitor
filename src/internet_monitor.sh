@@ -1,4 +1,4 @@
-#!/bin/bash
+م#!/bin/bash
 
 # Internet Usage Monitor Script
 # Tracks daily internet usage and sends notifications when exceeding thresholds
