@@ -62,6 +62,15 @@ get_daily_usage_bytes() {
     fi
 }
 
+# Function to extract monthly usage in bytes
+get_monthly_usage_bytes() {
+    if [[ -f "$USAGE_DATA_FILE" ]]; then
+        grep "monthly_usage=" "$USAGE_DATA_FILE" 2>/dev/null | cut -d'=' -f2 || echo "0"
+    else
+        echo "0"
+    fi
+}
+
 # Function to get current date from usage file
 get_current_date() {
     if [[ -f "$USAGE_DATA_FILE" ]]; then
@@ -233,8 +242,13 @@ case "$1" in
     "critical_threshold")
         echo "$CRITICAL_THRESHOLD%"
         ;;
+    "monthly_usage_gb")
+        m_usage_bytes=$(get_monthly_usage_bytes) # Removed local
+        m_usage_gb=$(bytes_to_gb $m_usage_bytes) # Removed local
+        printf "%.2f GB" "$m_usage_gb"
+        ;;
     *)
-        echo "Usage: $0 {date|usage|usage_mb|limit|remaining|remaining_mb|percentage|progress_bar|bar_percent|status|monitor_status|interface|config_limit|warning_threshold|critical_threshold}"
+        echo "Usage: $0 {date|usage|usage_mb|limit|remaining|remaining_mb|percentage|progress_bar|bar_percent|status|monitor_status|interface|config_limit|warning_threshold|critical_threshold|monthly_usage_gb}"
         echo ""
         echo "Data display options:"
         echo "  date              - Current date from usage file"
@@ -250,6 +264,7 @@ case "$1" in
         echo "System status options:"
         echo "  monitor_status    - Monitor running status"
         echo "  interface         - Current network interface"
+        echo "  monthly_usage_gb  - Current monthly usage in GB"
         echo ""
         echo "Configuration options:"
         echo "  config_limit      - Configured daily limit"

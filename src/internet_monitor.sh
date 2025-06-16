@@ -115,12 +115,30 @@ today=$(date '+%Y-%m-%d')
 
 if [ -f "$USAGE_DATA_FILE" ]; then
     source "$USAGE_DATA_FILE"
+    # Initialize new monthly vars if they don't exist from sourced file
+    current_month="${current_month:-$(date '+%Y-%m')}"
+    monthly_usage="${monthly_usage:-0}"
 else
     last_date=""
     last_total=0
     daily_usage=0
     warning_sent=false
     critical_sent=false
+    current_month="$(date '+%Y-%m')"
+    monthly_usage=0
+fi
+
+# Monthly reset logic
+this_month=$(date '+%Y-%m')
+if [ "$current_month" != "$this_month" ]; then
+    log_message "New month started ($this_month), resetting monthly usage counter."
+    monthly_usage=0
+    current_month="$this_month"
+    # Optionally, reset daily counters too if a new month implies a new day for sure
+    # daily_usage=0 # This is already handled by daily reset logic below
+    # warning_sent=false
+    # critical_sent=false
+    # last_date="$today" # Ensure daily reset also happens if month reset occurs
 fi
 
 # Reset daily usage if it's a new day
@@ -140,6 +158,7 @@ current_total=$(get_network_stats "$current_interface")
 if [ $last_total -gt 0 ] && [ $current_total -gt $last_total ]; then
     usage_diff=$((current_total - last_total))
     daily_usage=$((daily_usage + usage_diff))
+    monthly_usage=$((monthly_usage + usage_diff)) # Accumulate monthly usage
 fi
 
 # Update last total
@@ -155,6 +174,8 @@ daily_usage=$daily_usage
 warning_sent=$warning_sent
 critical_sent=$critical_sent
 current_interface="$current_interface"
+current_month="$current_month"
+monthly_usage=$monthly_usage
 EOF
     if [ $? -eq 0 ]; then
         echo "DEBUG: Successfully wrote to $USAGE_DATA_FILE" >&2
