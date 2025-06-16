@@ -107,7 +107,8 @@ personal_*
 
 # AUR makepkg build artifacts
 pkg/
-src/ # makepkg's source extraction directory (if PKGBUILD is in root)
+# The line "src/" was removed as it conflicts with the project's actual source directory.
+# The directory "internet-usage-monitor/" below handles makepkg's source extraction.
 internet-usage-monitor/ # Specific name of makepkg's source extraction dir for this project
 *.pkg.tar.zst
 *.pkg.tar.xz
