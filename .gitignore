@@ -104,3 +104,10 @@ personal_*
 # Patch files
 *.patch
 *.diff
+
+# AUR makepkg build artifacts
+pkg/
+src/ # makepkg's source extraction directory (if PKGBUILD is in root)
+internet-usage-monitor/ # Specific name of makepkg's source extraction dir for this project
+*.pkg.tar.zst
+*.pkg.tar.xz
