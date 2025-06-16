@@ -10,7 +10,7 @@ pkgver() {
   printf "0.0.r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 pkgrel=1
-pkgdesc="Real-time internet usage monitoring with Conky widget and notifications (git version)"
+pkgdesc="Monitors internet usage in real-time via Conky with desktop notifications (git version)"
 arch=('any')
 provides=("internet-usage-monitor=${pkgver}")
 conflicts=('internet-usage-monitor')
