@@ -35,7 +35,7 @@ paru -S internet-usage-monitor-git
 Alternatively, you can clone the AUR build files and build manually with `makepkg`:
 
 ```bash
-git clone <AUR_PACKAGE_URL> # Replace <AUR_PACKAGE_URL> with the actual URL once published
+git clone https://aur.archlinux.org/internet-usage-monitor-git.git
 cd internet-usage-monitor-git
 makepkg -si
 ```
