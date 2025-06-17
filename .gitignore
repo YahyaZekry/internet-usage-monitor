@@ -94,6 +94,7 @@ screenshots/*.gif
 TODO.md
 NOTES.md
 personal_*
+MAINTAINER_NOTES.md
 
 # Archive files
 *.tar
