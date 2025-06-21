@@ -87,9 +87,12 @@ is_monitor_running() {
         echo "true"
     elif [ -f "$USAGE_DATA_FILE" ]; then
         # Check if data file was updated recently (within last 10 minutes)
-        local last_modified=$(stat -c %Y "$USAGE_DATA_FILE" 2>/dev/null || echo 0)
-        local current_time=$(date +%s)
-        local time_diff=$((current_time - last_modified))
+        local last_modified
+        local current_time
+        local time_diff
+        last_modified=$(stat -c %Y "$USAGE_DATA_FILE" 2>/dev/null || echo 0)
+        current_time=$(date +%s)
+        time_diff=$((current_time - last_modified))
         if [ $time_diff -lt 600 ]; then  # 600 seconds = 10 minutes
             echo "true"
         else
@@ -112,11 +115,12 @@ bytes_to_mb() {
 
 bytes_to_gb() {
     local bytes=$1
+    local result
     # Ensure bytes is a valid number
     if [[ ! "$bytes" =~ ^[0-9]+$ ]]; then
         bytes=0
     fi
-    local result=$(echo "scale=3; $bytes / 1024 / 1024 / 1024" | bc -l 2>/dev/null)
+    result=$(echo "scale=3; $bytes / 1024 / 1024 / 1024" | bc -l 2>/dev/null)
     if [ -z "$result" ]; then # If bc produced empty output
         echo "0.000"
     else
@@ -126,7 +130,8 @@ bytes_to_gb() {
 
 # Function to get usage percentage
 get_usage_percentage() {
-    local usage_bytes=$(get_daily_usage_bytes)
+    local usage_bytes
+    usage_bytes=$(get_daily_usage_bytes)
     # Ensure usage_bytes is a valid number
     if [[ ! "$usage_bytes" =~ ^[0-9]+$ ]]; then
         usage_bytes=0
@@ -136,8 +141,10 @@ get_usage_percentage() {
 
 # Function to determine status based on usage
 get_usage_status() {
-    local usage_bytes=$(get_daily_usage_bytes)
-    local usage_percent=$(get_usage_percentage)
+    local usage_bytes
+    local usage_percent
+    usage_bytes=$(get_daily_usage_bytes)
+    usage_percent=$(get_usage_percentage)
     
     if (( $(echo "$usage_percent >= $CRITICAL_THRESHOLD" | bc -l 2>/dev/null || echo "0") )); then
         echo "LIMIT EXCEEDED"

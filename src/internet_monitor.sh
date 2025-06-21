@@ -1,4 +1,4 @@
-م#!/bin/bash
+#!/bin/bash
 
 # Internet Usage Monitor Script
 # Tracks daily internet usage and sends notifications when exceeding thresholds
@@ -62,8 +62,10 @@ log_message() {
 # Function to get current network stats
 get_network_stats() {
     local interface=$1
-    local rx_bytes=$(cat "/sys/class/net/$interface/statistics/rx_bytes" 2>/dev/null || echo 0)
-    local tx_bytes=$(cat "/sys/class/net/$interface/statistics/tx_bytes" 2>/dev/null || echo 0)
+    local rx_bytes
+    local tx_bytes
+    rx_bytes=$(cat "/sys/class/net/$interface/statistics/rx_bytes" 2>/dev/null || echo 0)
+    tx_bytes=$(cat "/sys/class/net/$interface/statistics/tx_bytes" 2>/dev/null || echo 0)
     echo $((rx_bytes + tx_bytes))
 }
 
