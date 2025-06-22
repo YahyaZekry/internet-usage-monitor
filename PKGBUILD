@@ -2,14 +2,8 @@
 
 pkgname=internet-usage-monitor-git
 _pkgname_src=internet-usage-monitor # This is the actual directory name of the source code
-pkgver=0.0.0.r0.dev # Placeholder static pkgver
-
-pkgver() {
-  cd "$_pkgname_src"
-  # Generates a version like 0.0.r<commit_count>.<short_hash>
-  printf "0.0.r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
-}
-pkgrel=3
+pkgver=0.0.1
+pkgrel=1
 pkgdesc="Monitors internet usage in real-time via Conky with desktop notifications (git version)"
 arch=('any')
 provides=("internet-usage-monitor=${pkgver}")
