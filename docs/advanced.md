@@ -1,5 +1,7 @@
 # Advanced Features & Configuration
 
+**Version:** 1.0.0 | **Optimized for:** KDE Plasma 6, Garuda Linux
+
 ## 🎯 Advanced Features
 
 - Professional uninstallation with comprehensive search and cleanup

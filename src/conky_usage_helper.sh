@@ -53,10 +53,18 @@ RUNTIME_DIR_EFFECTIVE="${RUNTIME_DIR:-$XDG_RUNTIME_DIR_EFFECTIVE/$APP_NAME}"
 mkdir -p "$DATA_DIR_EFFECTIVE" "$USER_CONFIG_DIR_EFFECTIVE" "$RUNTIME_DIR_EFFECTIVE"
 
 
-# Function to extract daily usage in bytes
+# Function to extract daily usage in bytes (optimized)
 get_daily_usage_bytes() {
     if [[ -f "$USAGE_DATA_FILE" ]]; then
-        grep "daily_usage=" "$USAGE_DATA_FILE" 2>/dev/null | cut -d'=' -f2 || echo "0"
+        # Source the file to load variables directly (more efficient than grep+cut)
+        local daily_usage=0
+        source "$USAGE_DATA_FILE" 2>/dev/null
+        # Validate that daily_usage is numeric
+        if [[ "$daily_usage" =~ ^[0-9]+$ ]]; then
+            echo "$daily_usage"
+        else
+            echo "0"
+        fi
     else
         echo "0"
     fi

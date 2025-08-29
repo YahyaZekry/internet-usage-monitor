@@ -72,17 +72,85 @@ trap cleanup SIGTERM SIGINT
 # DAEMON_PID_FILE is now defined using RUNTIME_DIR_EFFECTIVE
 DAEMON_PID_FILE="$RUNTIME_DIR_EFFECTIVE/daemon.pid"
 
-if [ -f "$DAEMON_PID_FILE" ]; then
-    EXISTING_PID=$(cat "$DAEMON_PID_FILE")
-    if ps -p "$EXISTING_PID" > /dev/null 2>&1; then
-        echo "Error: Internet monitor daemon is already running (PID: $EXISTING_PID)"
-        echo "To stop it, run: kill $EXISTING_PID"
+# Support daemon control commands
+case "${1:-start}" in
+    "start")
+        if [ -f "$DAEMON_PID_FILE" ]; then
+            EXISTING_PID=$(cat "$DAEMON_PID_FILE")
+            if ps -p "$EXISTING_PID" > /dev/null 2>&1; then
+                echo "Error: Internet monitor daemon is already running (PID: $EXISTING_PID)"
+                echo "To stop it, run: $0 stop"
+                exit 1
+            else
+                # Stale PID file, remove it
+                rm -f "$DAEMON_PID_FILE"
+            fi
+        fi
+        ;;
+    "stop")
+        if [ -f "$DAEMON_PID_FILE" ]; then
+            EXISTING_PID=$(cat "$DAEMON_PID_FILE")
+            if ps -p "$EXISTING_PID" > /dev/null 2>&1; then
+                echo "Stopping daemon (PID: $EXISTING_PID)..."
+                kill "$EXISTING_PID"
+                # Wait for process to stop
+                for i in {1..10}; do
+                    if ! ps -p "$EXISTING_PID" > /dev/null 2>&1; then
+                        echo "Daemon stopped successfully."
+                        rm -f "$DAEMON_PID_FILE"
+                        exit 0
+                    fi
+                    sleep 1
+                done
+                # Force kill if still running
+                kill -9 "$EXISTING_PID" 2>/dev/null
+                rm -f "$DAEMON_PID_FILE"
+                echo "Daemon forcefully stopped."
+            else
+                echo "Daemon not running (stale PID file removed)."
+                rm -f "$DAEMON_PID_FILE"
+            fi
+        else
+            echo "Daemon is not running."
+        fi
+        exit 0
+        ;;
+    "status")
+        if [ -f "$DAEMON_PID_FILE" ]; then
+            EXISTING_PID=$(cat "$DAEMON_PID_FILE")
+            if ps -p "$EXISTING_PID" > /dev/null 2>&1; then
+                echo "Daemon is running (PID: $EXISTING_PID)."
+                exit 0
+            else
+                echo "Daemon is not running (stale PID file found)."
+                exit 1
+            fi
+        else
+            echo "Daemon is not running."
+            exit 1
+        fi
+        ;;
+    "restart")
+        "$0" stop
+        sleep 2
+        "$0" start
+        exit $?
+        ;;
+    "help")
+        echo "Usage: $0 {start|stop|status|restart|help}"
+        echo "  start   - Start the daemon (default)"
+        echo "  stop    - Stop the daemon"
+        echo "  status  - Check daemon status"
+        echo "  restart - Restart the daemon"
+        echo "  help    - Show this help"
+        exit 0
+        ;;
+    *)
+        echo "Unknown command: $1"
+        echo "Use '$0 help' for available commands."
         exit 1
-    else
-        # Stale PID file, remove it
-        rm -f "$DAEMON_PID_FILE"
-    fi
-fi
+        ;;
+esac
 
 # Create PID file
 echo $$ > "$DAEMON_PID_FILE"

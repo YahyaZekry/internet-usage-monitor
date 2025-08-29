@@ -20,7 +20,7 @@ WARNING="⚠️"
 INFO="ℹ️"
 ROCKET="🚀"
 
-echo -e "${BLUE}${ROCKET} Internet Usage Monitor Installation${NC}"
+echo -e "${BLUE}${ROCKET} Internet Usage Monitor v1.0.0 Installation${NC}"
 echo -e "${BLUE}======================================${NC}"
 echo -e "${GREEN}Yerba Mate: Energize your day, simplify your system!${NC}"
 echo
@@ -346,16 +346,23 @@ install_files() {
     # Copy files to home directory
     print_status "$BLUE" "$INFO" "Copying updated scripts..."
     cp src/internet_monitor.sh "$HOME/"
-    print_status "$GREEN" "$CHECK" "Updated internet_monitor.sh"
+    print_status "$GREEN" "$CHECK" "Updated internet_monitor.sh (optimized)"
     
     cp src/conky_usage_helper.sh "$HOME/"
-    print_status "$GREEN" "$CHECK" "Updated conky_usage_helper.sh"
+    print_status "$GREEN" "$CHECK" "Updated conky_usage_helper.sh (optimized)"
     
     cp src/internet_monitor_daemon.sh "$HOME/"
-    print_status "$GREEN" "$CHECK" "Updated internet_monitor_daemon.sh"
+    print_status "$GREEN" "$CHECK" "Updated internet_monitor_daemon.sh (optimized)"
     
     cp config/conkyrc_internet "$HOME/.conkyrc_internet"
-    print_status "$GREEN" "$CHECK" "Updated Conky configuration"
+    print_status "$GREEN" "$CHECK" "Updated Conky configuration (KDE Plasma 6 compatible)"
+    
+    # Copy KDE fix script
+    if [ -f "fix_conky_kde.sh" ]; then
+        cp fix_conky_kde.sh "$HOME/"
+        chmod +x "$HOME/fix_conky_kde.sh"
+        print_status "$GREEN" "$CHECK" "Added KDE Plasma 6 Conky fix script"
+    fi
     
     # Handle config file specially for updates
     if [ -f "$HOME/config.sh" ] && [ "$install_choice" = "2" ]; then

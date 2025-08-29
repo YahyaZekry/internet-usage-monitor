@@ -5,8 +5,8 @@ conky.config = {
     -- Window settings
     own_window = true,
     own_window_class = 'Conky',
-    own_window_type = 'override', -- Changed from 'desktop' for better KDE compatibility
-    own_window_transparent = false,
+    own_window_type = 'normal', -- Fixed: 'normal' works better with KDE Plasma 6 window rules
+    own_window_transparent = true, -- Fixed: Enable transparency
     own_window_argb_visual = true,
     own_window_argb_value = 200,
     own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',

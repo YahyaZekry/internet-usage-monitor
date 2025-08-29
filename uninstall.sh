@@ -39,20 +39,33 @@ command_exists() {
 # Function to backup user data
 backup_user_data() {
     local backup_dir="$HOME/.internet_monitor_backup_$(date +%Y%m%d_%H%M%S)"
+    local has_data=false
     
-    if [ -f "$HOME/.internet_usage_data" ] || [ -f "$HOME/.internet_usage.log" ]; then
+    # XDG compliant paths (new)
+    local xdg_data_dir="$HOME/.local/share/internet-usage-monitor-git"
+    
+    # Legacy paths (old manual installations)
+    local legacy_files=("$HOME/.internet_usage_data" "$HOME/.internet_usage.log")
+    
+    # Check for XDG data
+    if [ -d "$xdg_data_dir" ] && [ "$(ls -A "$xdg_data_dir" 2>/dev/null)" ]; then
+        has_data=true
         mkdir -p "$backup_dir"
-        
-        if [ -f "$HOME/.internet_usage_data" ]; then
-            cp "$HOME/.internet_usage_data" "$backup_dir/"
-            print_status "$YELLOW" "$WARNING" "Backed up usage data to $backup_dir"
+        cp -r "$xdg_data_dir" "$backup_dir/xdg_data/"
+        print_status "$YELLOW" "$WARNING" "Backed up XDG data directory to $backup_dir/xdg_data/"
+    fi
+    
+    # Check for legacy files
+    for file in "${legacy_files[@]}"; do
+        if [ -f "$file" ]; then
+            has_data=true
+            [ ! -d "$backup_dir" ] && mkdir -p "$backup_dir"
+            cp "$file" "$backup_dir/"
+            print_status "$YELLOW" "$WARNING" "Backed up $(basename "$file") to $backup_dir"
         fi
-        
-        if [ -f "$HOME/.internet_usage.log" ]; then
-            cp "$HOME/.internet_usage.log" "$backup_dir/"
-            print_status "$YELLOW" "$WARNING" "Backed up usage log to $backup_dir"
-        fi
-        
+    done
+    
+    if [ "$has_data" = true ]; then
         echo -e "${YELLOW}Your usage data has been backed up to: $backup_dir${NC}"
         echo
     fi

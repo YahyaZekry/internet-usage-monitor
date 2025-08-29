@@ -2,8 +2,8 @@
 
 pkgname=internet-usage-monitor-git
 _pkgname_src=internet-usage-monitor # This is the actual directory name of the source code
-pkgver=0.0.2
-pkgrel=1
+pkgver=1.0.0
+pkgrel=2
 pkgdesc="Monitors internet usage in real-time via Conky with desktop notifications (git version)"
 arch=('any')
 provides=("internet-usage-monitor=${pkgver}")
@@ -47,14 +47,14 @@ package() {
   # Install install.sh and uninstall.sh to a shared location for user access
   install -Dm755 "install.sh" "$pkgdir/usr/share/$pkgname/desktop_scripts/install.sh"
   install -Dm755 "uninstall.sh" "$pkgdir/usr/share/$pkgname/desktop_scripts/uninstall.sh"
-  
-  # Install README (optional, but good practice)
-  install -Dm644 "README.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
-  
-  # Install .install script if created
-  # install -Dm644 "../${pkgname}.install" "${pkgdir}/usr/share/libalpm/hooks/${pkgname}.hook" # Incorrect for .install
-  # Correct way for .install is just to have it alongside PKGBUILD, makepkg handles it.
+  install -Dm755 "fix_conky_kde.sh" "$pkgdir/usr/share/$pkgname/desktop_scripts/fix_conky_kde.sh"
 
-  # Symlink for easy setup access
-  ln -s /usr/share/$pkgname/desktop_scripts/install.sh "$pkgdir/usr/bin/internet-usage-monitor-setup"
+  # Create symlinks for easy terminal access
+  ln -sf "/usr/share/$pkgname/desktop_scripts/install.sh" "$pkgdir/usr/bin/internet-usage-monitor-setup"
+  ln -sf "/usr/share/$pkgname/desktop_scripts/uninstall.sh" "$pkgdir/usr/bin/internet-usage-monitor-uninstall"
+  
+  # Install README and documentation
+  install -Dm644 "README.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
+  install -Dm644 "docs/advanced.md" "$pkgdir/usr/share/doc/$pkgname/advanced.md"
+  install -Dm644 "docs/troubleshooting.md" "$pkgdir/usr/share/doc/$pkgname/troubleshooting.md"
 }

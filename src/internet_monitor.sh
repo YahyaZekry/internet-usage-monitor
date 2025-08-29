@@ -69,15 +69,21 @@ get_network_stats() {
     echo $((rx_bytes + tx_bytes))
 }
 
-# Function to convert bytes to human readable format
+# Function to convert bytes to human readable format (optimized with awk)
 bytes_to_human() {
-    local bytes=$1
+    local bytes=${1:-0}
+    # Validate input is numeric
+    if [[ ! "$bytes" =~ ^[0-9]+$ ]]; then
+        echo "0 B"
+        return
+    fi
+    
     if [ $bytes -gt 1073741824 ]; then
-        echo "$(echo "scale=2; $bytes/1073741824" | bc) GB"
+        awk -v b="$bytes" 'BEGIN {printf "%.2f GB", b/1073741824}'
     elif [ $bytes -gt 1048576 ]; then
-        echo "$(echo "scale=2; $bytes/1048576" | bc) MB"
+        awk -v b="$bytes" 'BEGIN {printf "%.2f MB", b/1048576}'
     elif [ $bytes -gt 1024 ]; then
-        echo "$(echo "scale=2; $bytes/1024" | bc) KB"
+        awk -v b="$bytes" 'BEGIN {printf "%.2f KB", b/1024}'
     else
         echo "$bytes B"
     fi

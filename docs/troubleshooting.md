@@ -2,11 +2,24 @@
 
 ## 🔧 Troubleshooting
 
+**Version:** 1.0.0
+
 ### Common Issues
+
+#### Widget Appears on Top of Windows (KDE Plasma 6)
+
+- **Issue**: Conky widget stays on top of all windows instead of on desktop
+- **Cause**: KDE Plasma 6 changed window management behavior
+- **Fix**: Run the included fix script: `./fix_conky_kde.sh`
+- **Manual Fix**: 
+  1. Open System Settings > Window Management > Window Rules
+  2. Create new rule for window class "Conky"
+  3. Set "Keep below other windows" to "Force"
+  4. Apply and restart Conky
 
 #### Widget Disappears on "Show Desktop"
 
-- **Fixed!** The new configuration uses `own_window_type = 'desktop'` making it permanently stick to the desktop.
+- **Fixed!** The new configuration uses optimized window settings for better stability.
 
 #### Path Resolution Errors
 

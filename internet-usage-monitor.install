@@ -1,38 +1,145 @@
-APP_NAME="internet-usage-monitor"
+# Internet Usage Monitor AUR Package Install Script
+APP_NAME="internet-usage-monitor-git"
+PKG_INSTALL_DIR="/usr/share/$APP_NAME"
 
-# These variables are for informational messages.
-# The actual XDG paths will be determined by the user's environment when the scripts run.
-# We use common defaults here for the messages.
-_USER_HOME_FALLBACK="${HOME:-/home/$USER}" # A best guess if HOME isn't set during install script
-_XDG_CONFIG_HOME_FALLBACK="$_USER_HOME_FALLBACK/.config"
-_XDG_DATA_HOME_FALLBACK="$_USER_HOME_FALLBACK/.local/share"
+# Create desktop shortcuts for easy access
+create_desktop_shortcuts() {
+    # Create setup desktop file
+    cat > "/usr/share/applications/internet-monitor-setup.desktop" <<EOF
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Internet Usage Monitor - Setup
+Comment=Set up Internet Usage Monitor widget and daemon
+Exec=bash $PKG_INSTALL_DIR/desktop_scripts/install.sh
+Icon=network-wireless
+Terminal=true
+Categories=System;Monitor;Network;
+Keywords=internet;usage;monitor;conky;network;
+StartupNotify=false
+EOF
 
-_USER_CONFIG_DIR="$_XDG_CONFIG_HOME_FALLBACK/$APP_NAME"
-_USER_DATA_DIR="$_XDG_DATA_HOME_FALLBACK/$APP_NAME"
-_DEFAULT_CONFIG_DIR="/usr/share/$APP_NAME"
+    # Create uninstall desktop file
+    cat > "/usr/share/applications/internet-monitor-uninstall.desktop" <<EOF
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Internet Usage Monitor - Uninstall
+Comment=Remove Internet Usage Monitor completely
+Exec=bash $PKG_INSTALL_DIR/desktop_scripts/uninstall.sh
+Icon=user-trash
+Terminal=true
+Categories=System;Monitor;Network;
+Keywords=internet;usage;monitor;remove;uninstall;
+StartupNotify=false
+EOF
+
+    # Make desktop files executable
+    chmod 644 /usr/share/applications/internet-monitor-*.desktop
+    
+    # Copy desktop shortcuts to all user desktops (if Desktop folder exists)
+    for user_home in /home/*; do
+        if [ -d "$user_home/Desktop" ] && [ -w "$user_home/Desktop" ]; then
+            cp /usr/share/applications/internet-monitor-setup.desktop "$user_home/Desktop/" 2>/dev/null || true
+            cp /usr/share/applications/internet-monitor-uninstall.desktop "$user_home/Desktop/" 2>/dev/null || true
+            # Make sure the user owns the files
+            chown "$(basename "$user_home"):$(basename "$user_home")" "$user_home/Desktop/internet-monitor-"*.desktop 2>/dev/null || true
+            chmod +x "$user_home/Desktop/internet-monitor-"*.desktop 2>/dev/null || true
+        fi
+    done
+}
 
 post_install() {
-  echo ">>> $APP_NAME has been installed."
-  /opt/internet-usage-monitor/install.sh
-  echo "The uninstall script is located at /opt/internet-usage-monitor/uninstall.sh"
-  echo ">>> Default configuration files are in $_DEFAULT_CONFIG_DIR."
-  echo ">>> To customize, copy them to your user configuration directory (usually $_USER_CONFIG_DIR):"
-  echo "    mkdir -p \"$_USER_CONFIG_DIR\""
-  echo "    cp \"$_DEFAULT_CONFIG_DIR/config.sh\" \"$_USER_CONFIG_DIR/\""
-  echo "    cp \"$_DEFAULT_CONFIG_DIR/conkyrc_internet\" \"$_USER_CONFIG_DIR/\""
-  echo ">>> The application will automatically create data directories (usually in $_USER_DATA_DIR) upon first run."
-  echo ">>> You may want to start the conky widget or the daemon manually, or set up autostart as described in the README."
+    echo "🚀 Internet Usage Monitor v1.0.0 has been installed!"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo
+    
+    # Create desktop shortcuts
+    create_desktop_shortcuts
+    
+    echo "✅ Setup Options Available:"
+    echo
+    echo "🖥️  DESKTOP SHORTCUTS (Easiest):"
+    echo "   • Look for 'Internet Usage Monitor - Setup' on your desktop"
+    echo "   • Double-click to run the interactive setup"
+    echo
+    echo "⚡ COMMAND LINE (Advanced):"
+    echo "   • Run: internet-usage-monitor-setup"
+    echo "   • Or: bash $PKG_INSTALL_DIR/desktop_scripts/install.sh"
+    echo
+    echo "📝 What the setup will do:"
+    echo "   • Install required dependencies automatically"
+    echo "   • Configure Conky widget for your desktop"
+    echo "   • Set up usage monitoring daemon"
+    echo "   • Create autostart entries"
+    echo "   • Apply KDE Plasma 6 fixes if needed"
+    echo
+    echo "🎯 Quick Start:"
+    echo "   1. Double-click the 'Setup' shortcut on your desktop"
+    echo "   2. Follow the interactive prompts"
+    echo "   3. Enjoy monitoring your internet usage!"
+    echo
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "🧉 Yerba Mate: Your internet usage monitor is ready to brew!"
 }
 
 post_upgrade() {
-  echo ">>> $APP_NAME has been upgraded."
-  echo ">>> If you have custom configurations in your user directory (e.g., $_USER_CONFIG_DIR), they have been preserved."
-  echo ">>> Check $_DEFAULT_CONFIG_DIR for any new default configuration options you might want to incorporate."
+    echo "🔄 Internet Usage Monitor has been upgraded!"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    # Refresh desktop shortcuts
+    create_desktop_shortcuts
+    
+    echo "✅ What's been updated:"
+    echo "   • Core monitoring scripts optimized"
+    echo "   • Conky configuration improved"
+    echo "   • KDE Plasma 6 compatibility enhanced"
+    echo "   • Desktop shortcuts refreshed"
+    echo
+    echo "📝 Your existing data and configs are preserved!"
+    echo "   • Usage data: ~/.local/share/$APP_NAME/"
+    echo "   • Custom configs: ~/.config/$APP_NAME/"
+    echo
+    echo "🎯 To apply updates:"
+    echo "   • Double-click the 'Setup' shortcut on your desktop"
+    echo "   • Choose 'Update existing installation' when prompted"
+    echo
+    echo "🧉 Yerba Mate: Your monitor got an upgrade - time to celebrate!"
+}
+
+# Clean up desktop files and applications on removal
+cleanup_desktop_shortcuts() {
+    # Remove desktop files from applications menu
+    rm -f /usr/share/applications/internet-monitor-*.desktop
+    
+    # Remove desktop shortcuts from user desktops
+    for user_home in /home/*; do
+        if [ -d "$user_home/Desktop" ]; then
+            rm -f "$user_home/Desktop/internet-monitor-"*.desktop 2>/dev/null || true
+        fi
+    done
 }
 
 post_remove() {
-  echo ">>> $APP_NAME has been removed."
-  echo ">>> Your user-specific configuration files (e.g., in $_USER_CONFIG_DIR)"
-  echo ">>> and data files (e.g., in $_USER_DATA_DIR) have NOT been removed."
-  echo ">>> You can remove them manually if desired."
+    echo "🗑️  Internet Usage Monitor has been removed from system."
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    # Clean up desktop shortcuts
+    cleanup_desktop_shortcuts
+    
+    echo "✅ System cleanup completed:"
+    echo "   • Application files removed"
+    echo "   • Desktop shortcuts removed"
+    echo "   • Menu entries removed"
+    echo
+    echo "📁 Preserved user data (remove manually if desired):"
+    echo "   • Usage data: ~/.local/share/$APP_NAME/"
+    echo "   • Custom configs: ~/.config/$APP_NAME/"
+    echo "   • Usage logs and history files"
+    echo
+    echo "🚨 To completely remove ALL data:"
+    echo "   • Double-click the 'Uninstall' shortcut (if still available)"
+    echo "   • Or run: bash ~/uninstall.sh (if copied to home)"
+    echo
+    echo "🧉 Yerba Mate: Clean system, clear mind. Thanks for using our monitor!"
 }

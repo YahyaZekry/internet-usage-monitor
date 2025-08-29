@@ -51,11 +51,11 @@ makepkg -si
 
 - Open a terminal and run:
 
-    internet-usage-monitor-setup
+  internet-usage-monitor-setup
 
   or, if that does not work:
 
-    bash /usr/share/internet-usage-monitor-git/desktop_scripts/install.sh
+  bash /usr/share/internet-usage-monitor-git/desktop_scripts/install.sh
 
 This step is required to complete the installation and start the widget.
 
@@ -90,7 +90,17 @@ cp /usr/share/internet-usage-monitor-git/config.sh ~/.config/internet-usage-moni
 Then, edit your personal copy at `~/.config/internet-usage-monitor-git/config.sh`. For example, to change the daily limit:
 
 ```bash
-DAILY_LIMIT_GB=2  # Set your daily limit in GB
+DAILY_LIMIT_GB=3  # Set your daily limit in GB
+WARNING_THRESHOLD=80  # Warning at 80%
+CRITICAL_THRESHOLD=100  # Critical at 100%
+```
+
+**If you installed manually:**
+
+Edit the `config.sh` file in your home directory:
+
+```bash
+nano ~/config.sh
 ```
 
 ## 📋 Usage
