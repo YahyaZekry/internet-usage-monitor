@@ -1,14 +1,14 @@
--- Beautiful Internet Usage Monitor Widget
--- Designed for modern Linux desktop environments with dynamic configuration
+-- Final Conky Theme v3
+-- With dynamic warnings, emojis, and all previous fixes.
 
 conky.config = {
     -- Window settings
     own_window = true,
     own_window_class = 'Conky',
-    own_window_type = 'normal', -- Fixed: 'normal' works better with KDE Plasma 6 window rules
-    own_window_transparent = true, -- Fixed: Enable transparency
+    own_window_type = 'normal',
+    own_window_transparent = true,
     own_window_argb_visual = true,
-    own_window_argb_value = 200,
+    own_window_argb_value = 220,
     own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
     own_window_colour = '000000',
 
@@ -16,74 +16,59 @@ conky.config = {
     alignment = 'top_right',
     gap_x = 20,
     gap_y = 60,
-    minimum_height = 180,
-    minimum_width = 240,
-    maximum_width = 260,
+    minimum_width = 320,
+    minimum_height = 320,
 
     -- Background and borders
-    background = true,
+    background = false,
     border_width = 1,
-    border_inner_margin = 10,
-    border_outer_margin = 3,
     draw_borders = true,
-    draw_graph_borders = false,
-    draw_outline = false,
-    draw_shades = false,
-    stippled_borders = 0,
-
+    draw_graph_borders = true,
+    border_inner_margin = 10,
+    
     -- Font settings
     use_xft = true,
-    font = 'Ubuntu:size=9',
-    xftalpha = 0.9,
+    font = 'DejaVu Sans Mono:bold:size=10',
+    xftalpha = 1,
     override_utf8_locale = true,
 
-    -- Performance settings
-    cpu_avg_samples = 2,
-    net_avg_samples = 2,
-    no_buffers = true,
-    out_to_console = false,
-    out_to_stderr = false,
-    extra_newline = false,
-    update_interval = 3.0,
-    uppercase = false,
-    use_spacer = 'none',
-    show_graph_scale = false,
-    show_graph_range = false,
+    -- Performance & Rendering
     double_buffer = true,
-    imlib_cache_size = 0,
+    no_buffers = true,
+    text_buffer_size = 4096,
+    update_interval = 1.0,
+    uppercase = false,
 
-    -- Modern color palette
-    default_color = '#E8E8E8',        -- Light gray
-    default_outline_color = '#1a1a1a', -- Dark outline
-    default_shade_color = '#1a1a1a',   -- Dark shadow
-    
-    color0 = '#4A90E2',  -- Primary blue
-    color1 = '#7ED321',  -- Success green
-    color2 = '#F5A623',  -- Warning orange
-    color3 = '#D0021B',  -- Error red
-    color4 = '#9013FE',  -- Accent purple
-    color5 = '#50E3C2',  -- Teal
-    color6 = '#B8E986',  -- Light green
-    color7 = '#4A4A4A',  -- Dark gray
-    color8 = '#FFFFFF',  -- Pure white
-    color9 = '#BD10E0',  -- Magenta
+    -- New Coordinated Color Palette
+    default_color = '#FFFFFF',
+    color1 = '#59C2FF', -- Bright Blue (Download)
+    color2 = '#87FF59', -- Bright Green (Upload)
+    color3 = '#FFC059', -- Orange (Warning)
+    color4 = '#FF5959', -- Red (Critical)
 }
 
 conky.text = [[
-${alignc}${color0}${font Ubuntu:bold:size=12}${font Noto Color Emoji:size=12}📊${font Ubuntu:bold:size=12} INTERNET${font}
-${color0}${hr 1}
-${color8}${font Noto Color Emoji:size=10}📈${font} Used: ${alignr}${color1}${exec conky_usage_helper.sh usage}
-${color7}${hr 1}
-${color8}${font Noto Color Emoji:size=10}🎯${font} Limit: ${alignr}${color0}${exec conky_usage_helper.sh limit}
-${color7}${hr 1}
-${color8}${font Noto Color Emoji:size=10}💾${font} Left: ${alignr}${color5}${exec conky_usage_helper.sh remaining}
-${color7}${hr 1}
-${color8}${exec conky_usage_helper.sh percentage} ${alignr}${if_match ${exec conky_usage_helper.sh bar_percent} >= 100}${color3}${else}${if_match ${exec conky_usage_helper.sh bar_percent} >= 80}${color2}${else}${color1}${endif}${endif}${exec conky_usage_helper.sh status}
-${if_match ${exec conky_usage_helper.sh bar_percent} >= 100}${color3}${else}${if_match ${exec conky_usage_helper.sh bar_percent} >= 80}${color2}${else}${color1}${endif}${endif}${execbar 4,220 conky_usage_helper.sh bar_percent}
-${color7}${hr 1}
-${color8}${font Noto Color Emoji:size=10}📅${font} Month Used: ${alignr}${color6}${exec conky_usage_helper.sh monthly_usage_gb}
-${color7}${hr 1}
-${color8}${font Noto Color Emoji:size=8}🔧${font}${font Ubuntu:size=8} Monitor: ${color1}${exec conky_usage_helper.sh monitor_status}${font}
-${color8}${font Noto Color Emoji:size=8}🌐${font}${font Ubuntu:size=8} Interface: ${color4}${exec conky_usage_helper.sh interface}${font}
-${color7}${font Ubuntu:size=7}Warn: ${exec conky_usage_helper.sh warning_threshold} | Critical: ${exec conky_usage_helper.sh critical_threshold}${font}
+${alignc}${font Noto Color Emoji:size=12}🛰️${font DejaVu Sans Mono:bold:size=12}${color1}INTERNET USAGE${font}
+${hr}
+${voffset 5}
+${goto 10}${font Noto Color Emoji:size=10}📈${font} Used:${goto 120}${alignr}${color3}${exec $HOME/.local/bin/conky_usage_helper.sh usage}
+${goto 10}${font Noto Color Emoji:size=10}🎯${font} Limit:${goto 120}${alignr}${color1}${exec $HOME/.local/bin/conky_usage_helper.sh limit}
+${goto 10}${font Noto Color Emoji:size=10}💾${font} Left:${goto 120}${alignr}${color2}${exec $HOME/.local/bin/conky_usage_helper.sh remaining}
+${hr}
+${voffset 5}
+${goto 10}Daily Usage:${alignr}${exec $HOME/.local/bin/conky_usage_helper.sh percentage}
+${goto 10}${execbar 5,300 $HOME/.local/bin/conky_usage_helper.sh bar_percent}
+${hr}
+${voffset 5}
+${goto 10}${color1}Download: ${alignr}${downspeedf enp6s0} KB/s
+${alignc}${downspeedgraph enp6s0 25,280 59C2FF 59C2FF -l}
+${voffset 5}
+${goto 10}${color2}Upload: ${alignr}${upspeedf enp6s0} KB/s
+${alignc}${upspeedgraph enp6s0 25,280 87FF59 87FF59 -l}
+${hr}
+${voffset 5}
+${goto 10}${font Noto Color Emoji:size=10}🔧${font} Monitor:${alignr}${color2}${exec $HOME/.local/bin/conky_usage_helper.sh monitor_status}
+${goto 10}${font Noto Color Emoji:size=10}🌐${font} Interface:${alignr}${color1}${exec $HOME/.local/bin/conky_usage_helper.sh interface}
+${voffset 5}
+${alignc}${if_match ${execi 10 $HOME/.local/bin/conky_usage_helper.sh bar_percent} >= 100}${color4}${font Noto Color Emoji:size=10}☠️${font} CRITICAL: ${execi 10 $HOME/.local/bin/conky_usage_helper.sh percentage}${else}${if_match ${execi 10 $HOME/.local/bin/conky_usage_helper.sh bar_percent} >= 80}${color3}${font Noto Color Emoji:size=10}⚠️${font} WARNING: ${execi 10 $HOME/.local/bin/conky_usage_helper.sh percentage}${endif}${endif}
 ]]

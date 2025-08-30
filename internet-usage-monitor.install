@@ -53,31 +53,14 @@ post_install() {
     echo "🚀 Internet Usage Monitor v1.0.0 has been installed!"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo
+    echo "To complete the setup, the installer will now run."
+    echo "This will configure the widget and autostart options for your user."
+    echo
     
-    # Create desktop shortcuts
-    create_desktop_shortcuts
+    # Directly run the setup script installed by the package.
+    # This unifies the setup process for both manual and AUR installations.
+    bash "$PKG_INSTALL_DIR/desktop_scripts/install.sh" --aur
     
-    echo "✅ Setup Options Available:"
-    echo
-    echo "🖥️  DESKTOP SHORTCUTS (Easiest):"
-    echo "   • Look for 'Internet Usage Monitor - Setup' on your desktop"
-    echo "   • Double-click to run the interactive setup"
-    echo
-    echo "⚡ COMMAND LINE (Advanced):"
-    echo "   • Run: internet-usage-monitor-setup"
-    echo "   • Or: bash $PKG_INSTALL_DIR/desktop_scripts/install.sh"
-    echo
-    echo "📝 What the setup will do:"
-    echo "   • Install required dependencies automatically"
-    echo "   • Configure Conky widget for your desktop"
-    echo "   • Set up usage monitoring daemon"
-    echo "   • Create autostart entries"
-    echo "   • Apply KDE Plasma 6 fixes if needed"
-    echo
-    echo "🎯 Quick Start:"
-    echo "   1. Double-click the 'Setup' shortcut on your desktop"
-    echo "   2. Follow the interactive prompts"
-    echo "   3. Enjoy monitoring your internet usage!"
     echo
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "🧉 Yerba Mate: Your internet usage monitor is ready to brew!"
@@ -86,24 +69,11 @@ post_install() {
 post_upgrade() {
     echo "🔄 Internet Usage Monitor has been upgraded!"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    
-    # Refresh desktop shortcuts
-    create_desktop_shortcuts
-    
-    echo "✅ What's been updated:"
-    echo "   • Core monitoring scripts optimized"
-    echo "   • Conky configuration improved"
-    echo "   • KDE Plasma 6 compatibility enhanced"
-    echo "   • Desktop shortcuts refreshed"
+    echo "Running the setup again to apply any necessary configuration updates..."
     echo
-    echo "📝 Your existing data and configs are preserved!"
-    echo "   • Usage data: ~/.local/share/$APP_NAME/"
-    echo "   • Custom configs: ~/.config/$APP_NAME/"
+    bash "$PKG_INSTALL_DIR/desktop_scripts/install.sh" --aur --update
     echo
-    echo "🎯 To apply updates:"
-    echo "   • Double-click the 'Setup' shortcut on your desktop"
-    echo "   • Choose 'Update existing installation' when prompted"
-    echo
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "🧉 Yerba Mate: Your monitor got an upgrade - time to celebrate!"
 }
 
@@ -121,7 +91,7 @@ cleanup_desktop_shortcuts() {
 }
 
 post_remove() {
-    echo "🗑️  Internet Usage Monitor has been removed from system."
+    echo "�️  Internet Usage Monitor has been removed from system."
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     
     # Clean up desktop shortcuts
@@ -132,7 +102,7 @@ post_remove() {
     echo "   • Desktop shortcuts removed"
     echo "   • Menu entries removed"
     echo
-    echo "📁 Preserved user data (remove manually if desired):"
+    echo "� Preserved user data (remove manually if desired):"
     echo "   • Usage data: ~/.local/share/$APP_NAME/"
     echo "   • Custom configs: ~/.config/$APP_NAME/"
     echo "   • Usage logs and history files"

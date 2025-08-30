@@ -4,60 +4,11 @@
 # Tracks daily internet usage and sends notifications when exceeding thresholds
 # This version runs once and exits (perfect for cron jobs)
 
-# Load configuration
-APP_NAME="internet-usage-monitor-git" # Should be defined or sourced from config.sh if it sets it globally
-XDG_CONFIG_HOME_FALLBACK="$HOME/.config"
-XDG_CONFIG_HOME_EFFECTIVE="${XDG_CONFIG_HOME:-$XDG_CONFIG_HOME_FALLBACK}"
+# Source the common configuration and functions
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
-DEFAULT_CONFIG_DIR_BASE="/usr/share" # Base for system-wide defaults
-USER_CONFIG_DIR_EFFECTIVE="$XDG_CONFIG_HOME_EFFECTIVE/$APP_NAME"
-
-USER_CONFIG_FILE="$USER_CONFIG_DIR_EFFECTIVE/config.sh"
-DEFAULT_CONFIG_FILE="$DEFAULT_CONFIG_DIR_BASE/$APP_NAME/config.sh"
-
-if [ -f "$USER_CONFIG_FILE" ]; then
-    source "$USER_CONFIG_FILE"
-elif [ -f "$DEFAULT_CONFIG_FILE" ]; then
-    source "$DEFAULT_CONFIG_FILE"
-else
-    echo "Error: Configuration file not found in $USER_CONFIG_FILE or $DEFAULT_CONFIG_FILE" >&2
-    # Attempt to source config.sh from SCRIPT_DIR as a last resort for non-AUR execution
-    SCRIPT_DIR_CONFIG_FALLBACK="$(dirname "${BASH_SOURCE[0]}")/config.sh"
-    if [ -f "$SCRIPT_DIR_CONFIG_FALLBACK" ]; then
-        source "$SCRIPT_DIR_CONFIG_FALLBACK"
-        echo "Warning: Using config.sh from script directory $SCRIPT_DIR_CONFIG_FALLBACK as fallback." >&2
-    else
-        SCRIPT_DIR_PROJECT_CONFIG_FALLBACK="$(dirname "${BASH_SOURCE[0]}")/../config/config.sh"
-        if [ -f "$SCRIPT_DIR_PROJECT_CONFIG_FALLBACK" ]; then
-            source "$SCRIPT_DIR_PROJECT_CONFIG_FALLBACK"
-            echo "Warning: Using config.sh from project directory $SCRIPT_DIR_PROJECT_CONFIG_FALLBACK as fallback." >&2
-        else
-             echo "Error: Fallback config.sh also not found at $SCRIPT_DIR_CONFIG_FALLBACK or $SCRIPT_DIR_PROJECT_CONFIG_FALLBACK" >&2
-             exit 1
-        fi
-    fi
-fi
-
-# Ensure XDG directories are defined (they should be by config.sh)
-# Fallbacks for DATA_DIR, CONFIG_DIR, RUNTIME_DIR if not set by config.sh (defensive)
-XDG_DATA_HOME_FALLBACK="$HOME/.local/share"
-XDG_DATA_HOME_EFFECTIVE="${XDG_DATA_HOME:-$XDG_DATA_HOME_FALLBACK}"
-DATA_DIR_EFFECTIVE="${DATA_DIR:-$XDG_DATA_HOME_EFFECTIVE/$APP_NAME}"
-
-# CONFIG_DIR is already USER_CONFIG_DIR_EFFECTIVE
-# RUNTIME_DIR needs a fallback if not set by config.sh
-XDG_RUNTIME_DIR_FALLBACK="/run/user/$UID"
-XDG_RUNTIME_DIR_EFFECTIVE="${XDG_RUNTIME_DIR:-$XDG_RUNTIME_DIR_FALLBACK}"
-RUNTIME_DIR_EFFECTIVE="${RUNTIME_DIR:-$XDG_RUNTIME_DIR_EFFECTIVE/$APP_NAME}"
-
-# Ensure necessary directories exist
-mkdir -p "$DATA_DIR_EFFECTIVE" "$USER_CONFIG_DIR_EFFECTIVE" "$RUNTIME_DIR_EFFECTIVE"
-
-
-# Function to log messages
-log_message() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S'): $1" >> "$LOG_FILE"
-}
+# Check for required dependencies
+check_dependencies "bc" "ip" "cat"
 
 # Function to get current network stats
 get_network_stats() {
@@ -69,25 +20,6 @@ get_network_stats() {
     echo $((rx_bytes + tx_bytes))
 }
 
-# Function to convert bytes to human readable format (optimized with awk)
-bytes_to_human() {
-    local bytes=${1:-0}
-    # Validate input is numeric
-    if [[ ! "$bytes" =~ ^[0-9]+$ ]]; then
-        echo "0 B"
-        return
-    fi
-    
-    if [ $bytes -gt 1073741824 ]; then
-        awk -v b="$bytes" 'BEGIN {printf "%.2f GB", b/1073741824}'
-    elif [ $bytes -gt 1048576 ]; then
-        awk -v b="$bytes" 'BEGIN {printf "%.2f MB", b/1048576}'
-    elif [ $bytes -gt 1024 ]; then
-        awk -v b="$bytes" 'BEGIN {printf "%.2f KB", b/1024}'
-    else
-        echo "$bytes B"
-    fi
-}
 
 # Function to send notification
 send_notification() {
@@ -186,13 +118,16 @@ percentage=$(echo "scale=1; $daily_usage * 100 / $DAILY_LIMIT_BYTES" | bc)
 if [ $daily_usage -gt $WARNING_BYTES ] && [ "$warning_sent" != "true" ]; then
     send_notification "Internet Usage Warning" "High usage detected! Used: $usage_human (${percentage}% of ${DAILY_LIMIT_GB}GB limit)" "$NOTIFICATION_URGENCY_WARNING"
     warning_sent=true
-    save_usage_data
 fi
 
 # Check for critical threshold (100%)
 if [ $daily_usage -gt $CRITICAL_BYTES ] && [ "$critical_sent" != "true" ]; then
     send_notification "Internet Usage Alert" "Daily limit exceeded! Used: $usage_human (${percentage}% of ${DAILY_LIMIT_GB}GB limit)" "$NOTIFICATION_URGENCY_CRITICAL"
     critical_sent=true
+fi
+
+# Save the state again if a notification was sent
+if [ "$warning_sent" = "true" ] || [ "$critical_sent" = "true" ]; then
     save_usage_data
 fi
 

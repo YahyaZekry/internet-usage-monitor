@@ -76,23 +76,25 @@ if [ -f "$WINDOW_RULES_FILE" ]; then
     print_status "$YELLOW" "$WARNING" "Backed up existing rules to: $BACKUP_FILE"
 fi
 
-# Create the window rule using kwriteconfig
-RULE_NAME="internet-monitor-conky-fix"
-RULE_COUNT=$($KWRITE_CMD --file kwinrulesrc --group General --key count 2>/dev/null || echo "0")
-NEW_RULE_COUNT=$((RULE_COUNT + 1))
+# Find the next available rule number
+# This is a more robust way to add a new rule without causing errors
+i=1
+while $KWRITE_CMD --file kwinrulesrc --group "Rule ${i}" --key 'Description' &>/dev/null; do
+    # Check if this rule is ours, if so we can overwrite it
+    if [[ "$($KWRITE_CMD --file kwinrulesrc --group "Rule ${i}" --key 'Description')" == "Internet Monitor Conky - Keep Below" ]]; then
+        break
+    fi
+    ((i++))
+done
 
-# Update the rule count
-$KWRITE_CMD --file kwinrulesrc --group General --key count "$NEW_RULE_COUNT"
-$KWRITE_CMD --file kwinrulesrc --group General --key rules "$RULE_NAME"
+print_status "$BLUE" "$INFO" "Using rule slot [${i}] for the Conky fix."
 
 # Create the rule group
-$KWRITE_CMD --file kwinrulesrc --group "$RULE_NAME" --key Description "Internet Monitor Conky - Keep Below"
-$KWRITE_CMD --file kwinrulesrc --group "$RULE_NAME" --key wmclass "conky"
-$KWRITE_CMD --file kwinrulesrc --group "$RULE_NAME" --key wmclassmatch 1
-$KWRITE_CMD --file kwinrulesrc --group "$RULE_NAME" --key wmclasscomplete true
-$KWRITE_CMD --file kwinrulesrc --group "$RULE_NAME" --key types 1
-$KWRITE_CMD --file kwinrulesrc --group "$RULE_NAME" --key below true
-$KWRITE_CMD --file kwinrulesrc --group "$RULE_NAME" --key belowrule 2
+$KWRITE_CMD --file kwinrulesrc --group "Rule ${i}" --key 'Description' "Internet Monitor Conky - Keep Below"
+$KWRITE_CMD --file kwinrulesrc --group "Rule ${i}" --key 'wmclass' "conky"
+$KWRITE_CMD --file kwinrulesrc --group "Rule ${i}" --key 'wmclassmatch' 1
+$KWRITE_CMD --file kwinrulesrc --group "Rule ${i}" --key 'below' true
+$KWRITE_CMD --file kwinrulesrc --group "Rule ${i}" --key 'belowrule' 2
 
 print_status "$GREEN" "$CHECK" "KDE window rule created successfully!"
 
