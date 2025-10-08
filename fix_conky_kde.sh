@@ -98,18 +98,8 @@ $KWRITE_CMD --file kwinrulesrc --group "Rule ${i}" --key 'belowrule' 2
 
 print_status "$GREEN" "$CHECK" "KDE window rule created successfully!"
 
-# Restart KWin to apply the rule
-print_status "$BLUE" "$INFO" "Restarting KWin to apply the new rule..."
-if command -v kwin_x11 >/dev/null 2>&1; then
-    kwin_x11 --replace &
-    disown
-elif command -v kwin_wayland >/dev/null 2>&1; then
-    print_status "$YELLOW" "$WARNING" "Wayland detected. You may need to log out and back in for the rule to take effect."
-else
-    print_status "$YELLOW" "$WARNING" "Could not restart KWin automatically. Please log out and back in."
-fi
-
-print_status "$GREEN" "$CHECK" "Conky KDE fix applied!"
+print_status "$YELLOW" "$WARNING" "To apply the new window rule, please log out and back in, or restart your KDE session."
+print_status "$GREEN" "$CHECK" "Conky KDE fix applied (pending restart)!"
 
 echo
 print_status "$BLUE" "$INFO" "Instructions:"

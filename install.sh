@@ -91,8 +91,8 @@ install_base_files() {
         
         local backup_dir="$HOME/.internet_monitor_backup_$(date +%Y%m%d_%H%M%S)"
         mkdir -p "$backup_dir"
-        [ -d "$HOME/.config/internet-usage-monitor-git" ] && mv "$HOME/.config/internet-usage-monitor-git" "$backup_dir/"
-        [ -d "$HOME/.local/share/internet-usage-monitor-git" ] && mv "$HOME/.local/share/internet-usage-monitor-git" "$backup_dir/"
+        [ -d "$HOME/.config/internet-usage-monitor-git" ] && mv "$HOME/.config/internet-usage-monitor-git" "$backup_dir/config_backup/"
+        [ -d "$HOME/.local/share/internet-usage-monitor-git" ] && mv "$HOME/.local/share/internet-usage-monitor-git" "$backup_dir/data_backup/"
         print_status "$GREEN" "$CHECK" "Backup complete."
     fi
     
@@ -110,11 +110,27 @@ install_base_files() {
         cp "$source_dir"/fix_conky_kde.sh "$bin_dir/"
         chmod +x "$bin_dir"/*.sh
         print_status "$GREEN" "$CHECK" "Scripts installed to $bin_dir"
+    else
+        print_status "$BLUE" "$INFO" "Performing AUR installation..."
+        cp "$source_dir"/src/*.sh "$bin_dir/"
+        cp "$source_dir"/fix_conky_kde.sh "$bin_dir/"
+        chmod +x "$bin_dir"/*.sh
+        print_status "$GREEN" "$CHECK" "Scripts installed to $bin_dir from AUR package"
     fi
 
     # Copy ALL config files first before modification
     cp "$source_dir"/config/config.sh "$config_dir/"
     cp "$source_dir"/config/conkyrc_internet "$config_dir/"
+
+    # Detect actual network interface and replace hardcoded 'enp6s0' in conky config
+    actual_interface=$(ip route 2>/dev/null | grep default | awk '{print $5}' | head -n1 || echo "enp6s0")
+    if [ -n "$actual_interface" ]; then
+        sed -i "s/enp6s0/$actual_interface/g" "$config_dir/conkyrc_internet"
+        print_status "$GREEN" "$CHECK" "Updated Conky config for interface: $actual_interface"
+    else
+        print_status "$YELLOW" "$WARNING" "Could not detect network interface, keeping default 'enp6s0'"
+    fi
+
     print_status "$GREEN" "$CHECK" "Configuration files placed in $config_dir"
 }
 
@@ -267,20 +283,12 @@ finalize_and_run() {
 # --- MAIN EXECUTION FLOW ---
 
 main() {
-    local is_aur_install=false
-    if [ "$1" = "--aur" ]; then is_aur_install=true; fi
+    local source_dir="$(pwd)"
 
     section_header "Internet Usage Monitor Setup"
 
-    local source_dir
-    if [ "$is_aur_install" = true ]; then
-        source_dir="/usr/share/internet-usage-monitor-git"
-    else
-        source_dir="$(pwd)"
-        check_prerequisites
-    fi
-    
-    install_base_files "$source_dir" "$is_aur_install"
+    check_prerequisites
+    install_base_files "$source_dir" false
     
     print_status "$BLUE" "$INFO" "Choose your setup type:"
     echo "  1) Quick Install (Use recommended defaults)"
